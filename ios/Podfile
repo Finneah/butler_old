@@ -7,10 +7,13 @@ target 'butler' do
   config = use_native_modules!
 
   use_react_native!(:path => config["reactNativePath"])
+  
+  pod 'vasern', :path => '../node_modules/vasern'
 
   target 'butlerTests' do
     inherit! :complete
     # Pods for testing
+  
   end
 
   # Enables Flipper.

@@ -14,10 +14,10 @@ class ButlerIcon extends Component {
     render() {
         return (
             <Svg
-                height="100%"
+                height={this.props.size ? this.props.size : '100%'}
                 style="fill-rule:evenodd;clip-rule:evenodd;stroke-linecap:round;stroke-linejoin:round;"
                 xmlns="http://www.w3.org/2000/svg"
-                width="100%"
+                width={this.props.size ? this.props.size : '100%'}
                 version="1.1"
                 viewBox="0 0 1024 1024"
             >

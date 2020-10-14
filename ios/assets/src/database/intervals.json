@@ -1,0 +1,26 @@
+[
+    {
+        "key": "0",
+        "name": "einmalig"
+    },
+    {
+        "key": "1",
+        "name": "monatlich"
+    },
+    {
+        "key": "2",
+        "name": "alle 2 Monate"
+    },
+    {
+        "key": "3",
+        "name": "alle 3 Monate"
+    },
+    {
+        "key": "6",
+        "name": "alle 6 Monate"
+    },
+    {
+        "key": "12",
+        "name": "jährlich"
+    }
+]

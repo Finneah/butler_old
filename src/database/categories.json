@@ -1,0 +1,111 @@
+[
+    {
+        "name": "Haushalt",
+        "icon": "home",
+        "typ": "outgoing"
+    },
+    {
+        "name": "Lebensmittel",
+        "icon": "pizza",
+        "typ": "outgoing"
+    },
+
+    {
+        "name": "Reisen",
+        "icon": "earth",
+        "typ": "outgoing"
+    },
+    {
+        "name": "Auto",
+        "icon": "car-sport",
+        "typ": "outgoing"
+    },
+    {
+        "name": "Unterhaltung",
+        "icon": "tv",
+        "typ": "outgoing"
+    },
+    {
+        "name": "Bildung",
+        "icon": "library",
+        "typ": "outgoing"
+    },
+    {
+        "name": "Hobby",
+        "icon": "game-controller",
+        "typ": "outgoing"
+    },
+    {
+        "name": "Tiere",
+        "icon": "paw",
+        "typ": "outgoing"
+    },
+    {
+        "name": "Geschenke",
+        "icon": "gift",
+        "typ": "outgoing"
+    },
+    {
+        "name": "Geschenke",
+        "icon": "gift",
+
+        "typ": "incoming"
+    },
+    {
+        "name": "Arbeit",
+        "icon": "business",
+        "typ": "outgoing"
+    },
+    {
+        "name": "Familie",
+        "icon": "people",
+        "typ": "outgoing"
+    },
+    {
+        "name": "Gesundheit",
+        "icon": "medical",
+        "typ": "outgoing"
+    },
+    {
+        "name": "Spenden",
+        "icon": "heart",
+        "typ": "outgoing"
+    },
+    {
+        "name": "Spenden",
+        "icon": "heart",
+
+        "typ": "incoming"
+    },
+    {
+        "name": "Sparen",
+        "icon": "trophy",
+        "typ": "outgoing"
+    },
+    {
+        "name": "Rechnungen",
+        "icon": "cart",
+        "typ": "outgoing"
+    },
+    {
+        "name": "Versicherung",
+        "icon": "briefcase",
+        "typ": "outgoing"
+    },
+    {
+        "name": "Sonstiges",
+        "icon": "star",
+
+        "typ": "incoming"
+    },
+    {
+        "name": "Sonstiges",
+        "icon": "star",
+        "typ": "outgoing"
+    },
+    {
+        "name": "Gehalt",
+        "icon": "cash",
+        "typ": "incoming"
+    }
+]

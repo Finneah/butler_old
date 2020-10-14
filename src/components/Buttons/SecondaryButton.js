@@ -9,7 +9,7 @@ class SecondaryButton extends Component {
     }
     render() {
         const {text, isVisible, transparent, onPress} = this.props;
-        console.log(this.props);
+
         if (isVisible !== false) {
             return (
                 <Button

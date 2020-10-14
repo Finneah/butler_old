@@ -140,6 +140,13 @@ export default {
 
     // Color
     brandPrimary: platform === PLATFORM.IOS ? '#333' : '#333',
+    brandPrimaryLight: '#808080',
+    brandPrimaryDark: '#000',
+
+    brandSecondary: '#66806D', //FFEBCD
+    brandSecondaryLight: '#A3CCAD',
+    brandSecondaryDark: '#526657',
+
     brandInfo: '#3498db',
     brandSuccess: '#2ecc71',
     brandDanger: '#d9534f',
@@ -153,14 +160,6 @@ export default {
     middleGrey: '#BFBFBF',
     grey: '#808080',
     butler: '#333',
-
-    brandPrimaryLight: '#808080',
-    brandPrimaryDark: '#000',
-
-    brandSecondary: '#66806D', //FFEBCD
-    brandSecondaryLight: '#A3CCAD',
-    brandSecondaryDark: '#526657',
-
     warning: '#e74c3c',
     warningLight: '#e67e22',
     // Container

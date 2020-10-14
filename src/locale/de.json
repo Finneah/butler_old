@@ -5,5 +5,21 @@
     "LOGIN": "Login",
     "REGISTER": "Registrieren",
     "APP_TITLE": "Butler",
-    "PLEASE_WAIT": "Einen Moment bitte..."
+    "PLEASE_WAIT": "Einen Moment bitte...",
+    "EMPTY_ENTRYS": "Sie haben noch keine Einträge angelegt",
+    "CREATE_ENTRY": "Neuer Eintrag",
+    "EDIT_ENTRY": "Eintrag bearbeiten",
+    "DESCRIPTION": "Bezeichnung",
+    "AMOUNT": "Betrag",
+    "AMOUNT_TITLE": "Betrag (€)",
+    "CATEGORIE": "Kategorie",
+    "INTERVAL": "Interval",
+    "FROM": "Von",
+    "TILL": "Bis",
+    "MISSING_INFORMATION": "Fehlende Eingabe",
+    "INVALID_AMOUNT": "Falsche Eingabe",
+    "INCOMINGS": "Einnahmen",
+    "OUTGOINGS": "Ausgaben",
+    "CATEGORIES": "Kategorien",
+    "CURRENCY": "€"
 }
