@@ -95,6 +95,9 @@ export default (variables /* : * */ = variable) => {
         }
     };
     const buttonTheme = {
+        '.centered': {
+            alignSelf: 'center'
+        },
         '.disabled': {
             '.transparent': {
                 backgroundColor: 'transparent',

@@ -7,19 +7,35 @@ import {Root} from 'native-base';
 
 import {NavigationContainer} from '@react-navigation/native';
 import AppNavigator from './src/AppNavigator';
-
+import {ActivityIndicator} from 'react-native';
+import {Categories, Intervals} from './src/database';
 class App extends Component {
     constructor() {
         super();
+        this.state = {intervalsLoaded: false, categoriesLoaded: false};
     }
-
+    componentDidMount() {
+        Intervals.onLoaded(() => {
+            console.log('Intervals loaded');
+            this.setState({intervalsLoaded: true});
+        });
+        Categories.onLoaded(() => {
+            console.log('Categories loaded');
+            this.setState({categoriesLoaded: true});
+        });
+    }
     render() {
         return (
             <StyleProvider style={getTheme(platform)}>
                 <Root>
-                    <NavigationContainer>
-                        <AppNavigator />
-                    </NavigationContainer>
+                    {this.state.intervalsLoaded &&
+                    this.state.categoriesLoaded ? (
+                        <NavigationContainer>
+                            <AppNavigator />
+                        </NavigationContainer>
+                    ) : (
+                        <ActivityIndicator />
+                    )}
                 </Root>
             </StyleProvider>
         );

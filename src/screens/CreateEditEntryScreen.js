@@ -3,45 +3,27 @@ import {
     ActionSheet,
     Body,
     Button,
-    Card,
-    CardItem,
     Container,
-    Content,
-    Fab,
     Header,
     Icon,
     Input,
     Item,
-    Label,
     Left,
     ListItem,
     Right,
     Switch,
     Text,
-    Title
+    Title,
+    Toast
 } from 'native-base';
 
-import {
-    ActivityIndicator,
-    FlatList,
-    Platform,
-    Pressable,
-    StyleSheet,
-    View
-} from 'react-native';
-import {Colors} from 'react-native/Libraries/NewAppScreen';
+import {Alert, FlatList, Platform} from 'react-native';
 
-import ButlerIcon from '../components/Icons/ButlerIcon';
-import {ProgressCircle} from 'react-native-svg-charts';
-import {Queryable} from 'vasern/vasern/src/core';
-import * as moment from 'moment';
 import {strings} from '../i18n';
 import Helper from '../Helper';
 import DateTimePicker from '@react-native-community/datetimepicker';
-import GlobalColors from '../style/GlobalColors';
 import {Intervals, Entrys, MainEntrys} from '../database';
-import intervalJSON from '../database/intervals.json';
-const intervalQueryObj = new Queryable(Intervals.data());
+import Queryable from 'vasern/vasern/src/core/vasern-queryable';
 let helper = new Helper();
 
 class CreateEditEntryScreen extends Component {
@@ -65,6 +47,9 @@ class CreateEditEntryScreen extends Component {
 
             if (params && params.entry) {
                 this.setState({entry: params.entry});
+                if (params.entry.periodTill) {
+                    this.setState({showTillDatePicker: true});
+                }
                 this._checkEntry();
             }
 
@@ -163,6 +148,81 @@ class CreateEditEntryScreen extends Component {
         }
     }
 
+    _insertOrUpdateEntry() {
+        var {entry} = this.state;
+
+        if (entry.id) {
+            var BUTTONS = [
+                strings('All'),
+                strings('AllForFuture'),
+                strings('OnlyThisEntry')
+            ];
+
+            BUTTONS.push(strings('Cancel'));
+
+            ActionSheet.show(
+                {
+                    options: BUTTONS,
+
+                    cancelButtonIndex: BUTTONS.length - 1,
+                    title: strings('AskUpdateSerie')
+                },
+                (buttonIndex) => {
+                    console.log(BUTTONS[buttonIndex]);
+                    switch (buttonIndex) {
+                        case 0: // alle
+                            this._updateAllEntrys();
+                            break;
+                        case 1: // alle zukünftigen
+                            Toast.show({
+                                text: strings('IcantDoThatYet'),
+                                buttonText: strings('Ok')
+                            });
+                            break;
+                        case 2: // nur dieser
+                            Toast.show({
+                                text: strings('IcantDoThatYet'),
+                                buttonText: strings('Ok')
+                            });
+                            break;
+
+                        default:
+                            break;
+                    }
+                }
+            );
+        } else {
+            this._createNewEntry();
+        }
+    }
+
+    async _updateAllEntrys() {
+        try {
+            var {entry} = this.state;
+
+            var id = entry.id;
+            var updatedMainEntry = {
+                amount: entry.amount,
+                categorie: entry.categorie,
+                interval: entry.interval,
+                description: entry.description,
+                periodFrom: entry.periodFrom,
+                periodTill: entry.periodTill ? entry.periodTill : ''
+            };
+            var newMainEntry = MainEntrys.update(
+                {id: id},
+                updatedMainEntry,
+                true
+            );
+
+            await this._deleteEntrys(id);
+
+            this._createEntrys(newMainEntry, updatedMainEntry.interval);
+        } catch (error) {
+            console.warn('_updateEntrys', error);
+        }
+    }
+
     _createNewEntry() {
         this._insertMainEntry();
     }
@@ -184,6 +244,31 @@ class CreateEditEntryScreen extends Component {
             this._createEntrys(createdMainEntry, mainEntry.interval);
         } catch (error) {
             console.warn('_insertMainEntry', error);
+        }
+    }
+
+    async _deleteMainEntryAndEntrys() {
+        var id = this.state.entry.id;
+        this._deleteEntrys(id);
+
+        MainEntrys.remove({id: this.state.entry.id}, true);
+        // this.props.navigation.navigate('Overview');
+        this.props.navigation.goBack();
+    }
+
+    _deleteEntrys(id) {
+        try {
+            let entryQueryObj = new Queryable(Entrys.data());
+            Entrys.perform(function (db) {
+                entryQueryObj
+                    .filter({mainEntry_id: id})
+                    .data()
+                    .forEach(function (item) {
+                        db.remove(item, true);
+                    });
+            });
+        } catch (error) {
+            console.warn('_deleteEntrys', error);
         }
     }
 
@@ -234,7 +319,7 @@ class CreateEditEntryScreen extends Component {
                 periodTill,
                 parseInt(interval.key)
             );
-            console.log('_createEntrys', entrys);
+
             Entrys.insert(entrys, true);
             this.props.navigation.goBack();
         } catch (error) {
@@ -247,6 +332,7 @@ class CreateEditEntryScreen extends Component {
         try {
             this._check_Amount();
             this._check_Description();
+
             if (
                 entry &&
                 entry.description &&
@@ -269,7 +355,7 @@ class CreateEditEntryScreen extends Component {
 
     _renderItem(item) {
         try {
-            const {entry, options} = this.state;
+            const {entry} = this.state;
 
             switch (item.title) {
                 case strings('Description'):
@@ -369,7 +455,7 @@ class CreateEditEntryScreen extends Component {
                     intervals.forEach((interval) => {
                         BUTTONS.push(interval.name);
                     });
-                    BUTTONS.push('Cancel');
+                    BUTTONS.push(strings('Cancel'));
 
                     return (
                         <ListItem
@@ -423,7 +509,7 @@ class CreateEditEntryScreen extends Component {
                                     locale={'de-DE'}
                                     value={
                                         entry.periodFrom
-                                            ? entry.periodFrom
+                                            ? new Date(entry.periodFrom)
                                             : new Date()
                                     }
                                     mode={'date'}
@@ -467,21 +553,19 @@ class CreateEditEntryScreen extends Component {
                                         locale={'de-DE'}
                                         value={
                                             entry.periodTill
-                                                ? entry.periodTill
+                                                ? new Date(entry.periodTill)
                                                 : new Date()
                                         }
                                         mode={'date'}
                                         is24Hour={true}
                                         display="default"
                                         onChange={(event, date) => {
-                                            this.setState(
-                                                (prevState, props) => ({
-                                                    entry: {
-                                                        ...prevState.entry,
-                                                        periodTill: date
-                                                    }
-                                                })
-                                            );
+                                            this.setState((prevState) => ({
+                                                entry: {
+                                                    ...prevState.entry,
+                                                    periodTill: date
+                                                }
+                                            }));
                                         }}
                                     />
                                 ) : null}
@@ -509,7 +593,7 @@ class CreateEditEntryScreen extends Component {
     }
 
     render() {
-        const {options, entry, descriptionIsValid} = this.state;
+        const {options, entry} = this.state;
 
         return (
             <Container>
@@ -526,7 +610,11 @@ class CreateEditEntryScreen extends Component {
                         </Button>
                     </Left>
                     <Body>
-                        <Title>{strings('CreateEntry')}</Title>
+                        <Title>
+                            {entry && entry.id
+                                ? strings('EditEntry')
+                                : strings('CreateEntry')}
+                        </Title>
                     </Body>
                     <Right>
                         <Button
@@ -534,7 +622,7 @@ class CreateEditEntryScreen extends Component {
                             disabled={this.state.disabled}
                             transparent
                             onPress={() => {
-                                this._createNewEntry();
+                                this._insertOrUpdateEntry();
                             }}
                         >
                             <Icon name="save" />
@@ -548,30 +636,51 @@ class CreateEditEntryScreen extends Component {
                     scrollEnabled={true}
                     renderItem={({item}) => this._renderItem(item)}
                 />
+                {this.state.entry && this.state.entry.id ? (
+                    <Button
+                        style={{marginVertical: 20}}
+                        warning
+                        iconLeft
+                        transparent
+                        centered
+                        onPress={() => {
+                            Alert.alert(
+                                strings('AskDeleteSerie'),
+                                strings('DeleteEntryOrSerie'),
+                                [
+                                    {
+                                        text: strings('Cancel'),
+                                        onPress: () =>
+                                            console.log('Cancel Pressed'),
+                                        style: 'cancel'
+                                    },
+                                    {
+                                        text: strings('DeleteEntry'),
+                                        onPress: () => {
+                                            Toast.show({
+                                                text: strings('IcantDoThatYet'),
+                                                buttonText: strings('Ok')
+                                            });
+                                        },
+
+                                        style: 'default'
+                                    },
+                                    {
+                                        text: strings('DeleteSerie'),
+                                        style: 'destructive',
+                                        onPress: () =>
+                                            this._deleteMainEntryAndEntrys()
+                                    }
+                                ]
+                            );
+                        }}
+                    >
+                        <Icon name="trash"></Icon>
+                        <Text>{strings('Delete')}</Text>
+                    </Button>
+                ) : null}
             </Container>
         );
     }
 }
 export default CreateEditEntryScreen;
-const styles = StyleSheet.create({
-    mainTitleContainer: {
-        justifyContent: 'center',
-        alignItems: 'center',
-        padding: 20
-    },
-    mainTitleText: {
-        fontSize: 20,
-        fontWeight: 'bold'
-    },
-    container: {flex: 1, padding: 20, paddingTop: 30},
-    dateTimeContainer: {
-        zIndex: 1,
-        height: 100,
-        width: '100%'
-    },
-    wrapper: {flexDirection: 'row', margin: 10},
-    titleCol: {flex: 1},
-    titleText: {fontSize: 18, fontWeight: 'bold'},
-    row: {height: 28},
-    text: {textAlign: 'center'}
-});

@@ -15,7 +15,7 @@ import {
 
 import {
     ActivityIndicator,
-    Dimensions,
+    Alert,
     FlatList,
     Pressable,
     StyleSheet,
@@ -39,6 +39,8 @@ class OverviewScreen extends Component {
         this.state = {
             active: false,
             isLoading: true,
+            intervalsLoaded: false,
+            categoriesLoaded: false,
             sections: [],
             selected: false,
             selectedItem: undefined,
@@ -50,18 +52,24 @@ class OverviewScreen extends Component {
     }
     componentDidMount() {
         Entrys.onLoaded(() => {
-            console.log('Entrys loaded');
+            console.info('Entrys loaded');
             this._setState();
         });
         Entrys.onChange(() => {
-            console.log('Entrys changed');
+            console.info('Entrys changed');
             this._setState();
         });
     }
     componentDidUpdate(prevProps, prevState) {
         if (prevState.selectedYear != this.state.selectedYear) {
-            console.log('here');
+            this._setState();
+            console.info('here');
         }
+        // if (prevState.sections != this.state.sections) {
+        //     if (this.state.selectedYear == this.state.currentYear) {
+        //         this.scrollToIndex();
+        //     }
+        // }
     }
 
     _setState() {
@@ -91,40 +99,43 @@ class OverviewScreen extends Component {
                 if (sectionEntrys) {
                     for (let i = 0; i < sectionEntrys.length; i++) {
                         const element = sectionEntrys[i];
+
                         var mainEntry = mainEntryQueryObj.get({
                             id: element.mainEntry_id
                         });
-                        var categorie = categorieQueryObj.get({
-                            id: mainEntry.categorie_id
-                        });
-                        var interval = intervalQueryObj.get({
-                            id: mainEntry.interval_id
-                        });
-                        if (categorie) {
-                            switch (categorie.typ) {
-                                case 'incoming':
-                                    sectionEntrys.incoming
-                                        ? (sectionEntrys.incoming += parseFloat(
-                                              mainEntry.amount
-                                          ))
-                                        : (sectionEntrys.incoming = parseFloat(
-                                              mainEntry.amount
-                                          ));
+                        if (mainEntry) {
+                            var categorie = categorieQueryObj.get({
+                                id: mainEntry.categorie_id
+                            });
+                            var interval = intervalQueryObj.get({
+                                id: mainEntry.interval_id
+                            });
+                            if (categorie) {
+                                switch (categorie.typ) {
+                                    case 'incoming':
+                                        sectionEntrys.incoming
+                                            ? (sectionEntrys.incoming += parseFloat(
+                                                  mainEntry.amount
+                                              ))
+                                            : (sectionEntrys.incoming = parseFloat(
+                                                  mainEntry.amount
+                                              ));
 
-                                    break;
-                                case 'outgoing':
-                                    sectionEntrys.outgoing
-                                        ? (sectionEntrys.outgoing += parseFloat(
-                                              mainEntry.amount
-                                          ))
-                                        : (sectionEntrys.outgoing = parseFloat(
-                                              mainEntry.amount
-                                          ));
+                                        break;
+                                    case 'outgoing':
+                                        sectionEntrys.outgoing
+                                            ? (sectionEntrys.outgoing += parseFloat(
+                                                  mainEntry.amount
+                                              ))
+                                            : (sectionEntrys.outgoing = parseFloat(
+                                                  mainEntry.amount
+                                              ));
 
-                                    break;
+                                        break;
 
-                                default:
-                                    break;
+                                    default:
+                                        break;
+                                }
                             }
                         }
 
@@ -138,6 +149,7 @@ class OverviewScreen extends Component {
                     if (sectionEntrys.length > 0) {
                         sections.push({
                             title: strings(m[parseInt(date.getMonth())]),
+                            monthIndex: parseInt(date.getMonth() + 1),
                             data: sectionEntrys,
                             calc: {
                                 incoming: sectionEntrys.incoming,
@@ -164,26 +176,104 @@ class OverviewScreen extends Component {
             item.calc.incoming ? item.calc.incoming : 0,
             item.calc.outgoing ? item.calc.outgoing : 0
         );
-        console.log(progress);
+
         return parseFloat(progress);
     }
 
+    _getInitialScrollIndex() {
+        const {sections} = this.state;
+        if (sections.length > 0) {
+            if (this.state.selectedYear == this.state.currentYear) {
+                var m = moment.months('de');
+                var index = 1;
+                sections.filter((a, i) => {
+                    if (a.title == strings(m[new Date().getMonth()])) {
+                        index = i;
+                    }
+                });
+
+                return index;
+            }
+        }
+
+        return 0;
+    }
+
+    scrollToIndex = () => {
+        const {sections} = this.state;
+
+        if (sections.length > 0) {
+            this.thisYearFlatListRef.scrollToIndex({
+                animated: true,
+                index: this._getInitialScrollIndex()
+            });
+        }
+    };
+
+    scrollToTop() {
+        const {sections} = this.state;
+
+        if (sections.length > 0) {
+            this.thisYearFlatListRef.scrollToIndex({animated: true, index: 0});
+        }
+    }
+
     render() {
-        const {sections, selectedYear, currentYear} = this.state;
-        const data = {
-            tableTitle: [
-                strings('Incomings'),
-                strings('Outgoings'),
-                strings('Remaining')
-            ],
-            tableData: [['200'], ['a'], ['1']]
-        };
+        const {sections, selectedYear} = this.state;
+
         return (
             <Container>
                 <Header>
-                    <Left></Left>
+                    <Left>
+                        <Button
+                            primary
+                            transparent
+                            onPress={() => {
+                                this.setState({
+                                    selectedYear: this.state.currentYear
+                                });
+                                this.scrollToIndex();
+                            }}
+                        >
+                            <Text>{strings('Today')}</Text>
+                        </Button>
+                    </Left>
                     <Body>
-                        <ButlerIcon size={50} />
+                        <Pressable
+                            onLongPress={() => {
+                                Alert.alert('Alle Daten löschen?', '', [
+                                    {
+                                        text: strings('Cancel'),
+                                        onPress: () => {},
+                                        style: 'cancel'
+                                    },
+
+                                    {
+                                        text: 'Löschen',
+                                        style: 'destructive',
+                                        onPress: () => {
+                                            Entrys.perform(function (db) {
+                                                Entrys.data().forEach(function (
+                                                    item
+                                                ) {
+                                                    db.remove(item);
+                                                });
+                                            });
+
+                                            MainEntrys.perform(function (db) {
+                                                MainEntrys.data().forEach(
+                                                    function (item) {
+                                                        db.remove(item);
+                                                    }
+                                                );
+                                            });
+                                        }
+                                    }
+                                ]);
+                            }}
+                        >
+                            <ButlerIcon size={50} />
+                        </Pressable>
                     </Body>
                     <Right>
                         <Button
@@ -202,28 +292,9 @@ class OverviewScreen extends Component {
                 </Header>
                 {this.state.isLoading ? <ActivityIndicator /> : null}
 
-                {/* <View
-                    style={{
-                        flexDirection: 'row',
-
-                        justifyContent: 'center',
-                        paddingTop: 15
-                    }}
-                >
-                    <Button
-                        rounded
-                        onPress={() => {
-                            this.setState({selectedYear: currentYear});
-                        }}
-                    >
-                        <Text>{'Heute '}</Text>
-                    </Button>
-                </View> */}
-
                 <View
                     style={{
                         flexDirection: 'row',
-
                         justifyContent: 'space-between',
                         padding: 15
                     }}
@@ -238,13 +309,7 @@ class OverviewScreen extends Component {
                         <Icon name="arrow-back" />
                         <Text>{this.state.selectedYear - 1}</Text>
                     </Button>
-                    <Button
-                        iconLeft
-
-                        // onPress={() => {
-                        //     this.setState({selectedYear: selectedYear - 1});
-                        // }}
-                    >
+                    <Button onPress={() => this.scrollToTop()}>
                         <Text>{this.state.selectedYear}</Text>
                     </Button>
                     <Button
@@ -263,92 +328,92 @@ class OverviewScreen extends Component {
                     ref={(ref) => {
                         this.thisYearFlatListRef = ref;
                     }}
-                    // initialScrollIndex={
-                    //     sections.length > 0 ? new Date().getMonth() + 1 : 1
-                    // }
-                    // // initialNumToRender={1}
-                    // getItemLayout={(data, index) => ({
-                    //     length: 500,
-                    //     offset: 500 * index,
-                    //     index
-                    // })}
+                    initialScrollIndex={this._getInitialScrollIndex()}
+                    getItemLayout={(data, index) => ({
+                        length: 360,
+                        offset: 360 * index,
+                        index
+                    })}
                     data={sections}
                     // listKey={this.props.thisDate.getFullYear().toString()}
                     keyExtractor={(item, index) => index.toString()}
                     scrollEnabled={true}
                     renderItem={({item}) => (
-                        <Pressable
-                            onPress={() => {
-                                console.log(item);
-                            }}
-                        >
-                            <Card>
-                                <CardItem header>
-                                    <Body>
-                                        <Title>{item.title}</Title>
-                                    </Body>
-                                </CardItem>
-                                <ProgressCircle
-                                    style={{height: 120}}
-                                    progress={this._getProgressForItem(item)}
-                                    strokeWidth={10}
-                                    progressColor={GlobalColors.accentColor}
-                                />
+                        <Card>
+                            <CardItem header>
+                                <Body>
+                                    <Title>{item.title}</Title>
+                                </Body>
+                            </CardItem>
+                            <ProgressCircle
+                                style={{height: 120}}
+                                progress={this._getProgressForItem(item)}
+                                strokeWidth={10}
+                                progressColor={GlobalColors.accentColor}
+                            />
 
-                                <Table borderStyle={{borderWidth: 0}}>
-                                    <TableWrapper style={styles.wrapper}>
-                                        <Col
-                                            data={[
-                                                strings('Incomings'),
-                                                strings('Outgoings'),
-                                                strings('Remaining')
-                                            ]}
-                                            style={styles.titleCol}
-                                            heightArr={[20, 20]}
-                                            textStyle={styles.titleText}
-                                        />
-                                        <Rows
-                                            data={[
-                                                [
-                                                    item.calc.incoming.toString() +
-                                                        ' ' +
-                                                        strings('Currency')
-                                                ],
-                                                [
-                                                    item.calc.outgoing.toString() +
-                                                        ' ' +
-                                                        strings('Currency')
-                                                ],
-                                                [
-                                                    item.calc.remaining.toString() +
-                                                        ' ' +
-                                                        strings('Currency')
-                                                ]
-                                            ]}
-                                            flexArr={[1, 1]}
-                                            style={styles.row}
-                                            textStyle={styles.text}
-                                        />
-                                    </TableWrapper>
-                                </Table>
-                                <CardItem footer>
-                                    <Button
-                                        transparent
-                                        onPress={() => {
-                                            console.log(item);
-                                            // this.props.navigation.navigate(
-                                            //     'Details',
-                                            //     {
-                                            //         month: item
-                                            //     }
-                                            // );
-                                        }}
-                                    >
-                                        <Text>{'Details'}</Text>
-                                    </Button>
-                                </CardItem>
-                            </Card>
-                        </Pressable>
+                            <Table borderStyle={{borderWidth: 0}}>
+                                <TableWrapper style={styles.wrapper}>
+                                    <Col
+                                        data={[
+                                            strings('Incomings'),
+                                            strings('Outgoings'),
+                                            strings('Remaining')
+                                        ]}
+                                        style={styles.titleCol}
+                                        heightArr={[20, 20]}
+                                        textStyle={styles.titleText}
+                                    />
+                                    <Rows
+                                        data={[
+                                            [
+                                                item.calc.incoming
+                                                    ? item.calc.incoming.toString() +
+                                                      ' ' +
+                                                      strings('Currency')
+                                                    : ''
+                                            ],
+                                            [
+                                                item.calc.outgoing
+                                                    ? item.calc.outgoing.toString() +
+                                                      ' ' +
+                                                      strings('Currency')
+                                                    : ''
+                                            ],
+                                            [
+                                                item.calc.remaining
+                                                    ? item.calc.remaining.toString() +
+                                                      ' ' +
+                                                      strings('Currency')
+                                                    : ''
+                                            ]
+                                        ]}
+                                        flexArr={[1, 1]}
+                                        style={styles.row}
+                                        textStyle={styles.text}
+                                    />
+                                </TableWrapper>
+                            </Table>
+                            <CardItem footer>
+                                <Button
+                                    transparent
+                                    onPress={() => {
+                                        this.props.navigation.navigate(
+                                            'Details',
+                                            {
+                                                screen: 'MonthDetail',
+                                                params: {
+                                                    month: item,
+                                                    year: selectedYear
+                                                }
+                                            }
+                                        );
+                                    }}
+                                >
+                                    <Text>{strings('Details')}</Text>
+                                </Button>
+                            </CardItem>
+                        </Card>
                     )}
                     ListEmptyComponent={() => (
                         <Card>

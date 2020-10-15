@@ -5,8 +5,8 @@ import {IntervalSchema} from './Schemas/IntervalSchema';
 import {MainEntrySchema} from './Schemas/MainEntrySchema';
 
 const vasern = new Vasern({
-    schemas: [EntrySchema, MainEntrySchema, CategorieSchema, IntervalSchema],
+    schemas: [IntervalSchema, CategorieSchema, MainEntrySchema, EntrySchema],
     version: 1
 });
-console.log(vasern);
+
 export default vasern;
