@@ -10,7 +10,8 @@ import {
     Left,
     Right,
     Text,
-    Title
+    Title,
+    Toast
 } from 'native-base';
 
 import {
@@ -31,8 +32,9 @@ import {Categories, Entrys, Intervals, MainEntrys} from '../database';
 import Helper from '../Helper';
 import {Table, TableWrapper, Col, Rows} from 'react-native-table-component';
 import GlobalColors from '../style/GlobalColors';
+import Error_Handler from '../Error_Handler';
 let helper = new Helper();
-
+let error_helper = new Error_Handler();
 class OverviewScreen extends Component {
     constructor() {
         super();
@@ -53,10 +55,21 @@ class OverviewScreen extends Component {
     componentDidMount() {
         Entrys.onLoaded(() => {
             console.info('Entrys loaded');
+
+            Toast.show({
+                text: 'Entrys loaded ' + Entrys.data().length.toString(),
+                buttonText: strings('Ok')
+            });
             this._setState();
         });
+
         Entrys.onChange(() => {
             console.info('Entrys changed');
+            Toast.show({
+                text: 'Entrys changed ' + Entrys.data().length.toString(),
+                buttonText: strings('Ok')
+            });
+
             this._setState();
         });
     }
@@ -73,99 +86,106 @@ class OverviewScreen extends Component {
     }
 
     _setState() {
-        var {selectedYear} = this.state;
-        var sections = [];
-        let entryQueryObj = new Queryable(Entrys.data());
-        let mainEntryQueryObj = new Queryable(MainEntrys.data());
-        let categorieQueryObj = new Queryable(Categories.data());
-        let intervalQueryObj = new Queryable(Intervals.data());
+        try {
+            var {selectedYear} = this.state;
+            var sections = [];
+            let entryQueryObj = new Queryable(Entrys.data());
+            let mainEntryQueryObj = new Queryable(MainEntrys.data());
+            let categorieQueryObj = new Queryable(Categories.data());
+            let intervalQueryObj = new Queryable(Intervals.data());
 
-        var dateArray = helper._getDates(
-            new Date('01/01.' + selectedYear),
-            new Date('12/30.' + selectedYear),
-            1
-        );
+            var dateArray = helper._getDates(
+                new Date('01/01.' + selectedYear),
+                new Date('12/30.' + selectedYear),
+                1
+            );
+            Toast.show({
+                text: 'dateArray ' + dateArray.length.toString(),
+                buttonText: strings('Ok')
+            });
+            if (dateArray) {
+                dateArray.forEach((date) => {
+                    var m = moment.months('de');
 
-        if (dateArray) {
-            dateArray.forEach((date) => {
-                var m = moment.months('de');
+                    var sectionEntrys = entryQueryObj
+                        .filter({
+                            year: selectedYear.toString(),
+                            month: (date.getMonth() + 1).toString()
+                        })
+                        .data();
+                    if (sectionEntrys) {
+                        for (let i = 0; i < sectionEntrys.length; i++) {
+                            const element = sectionEntrys[i];
 
-                var sectionEntrys = entryQueryObj
-                    .filter({
-                        year: selectedYear.toString(),
-                        month: (date.getMonth() + 1).toString()
-                    })
-                    .data();
-                if (sectionEntrys) {
-                    for (let i = 0; i < sectionEntrys.length; i++) {
-                        const element = sectionEntrys[i];
-
-                        var mainEntry = mainEntryQueryObj.get({
-                            id: element.mainEntry_id
-                        });
-                        if (mainEntry) {
-                            var categorie = categorieQueryObj.get({
-                                id: mainEntry.categorie_id
+                            var mainEntry = mainEntryQueryObj.get({
+                                id: element.mainEntry_id
                             });
-                            var interval = intervalQueryObj.get({
-                                id: mainEntry.interval_id
-                            });
-                            if (categorie) {
-                                switch (categorie.typ) {
-                                    case 'incoming':
-                                        sectionEntrys.incoming
-                                            ? (sectionEntrys.incoming += parseFloat(
-                                                  mainEntry.amount
-                                              ))
-                                            : (sectionEntrys.incoming = parseFloat(
-                                                  mainEntry.amount
-                                              ));
+                            if (mainEntry) {
+                                var categorie = categorieQueryObj.get({
+                                    id: mainEntry.categorie_id
+                                });
+                                var interval = intervalQueryObj.get({
+                                    id: mainEntry.interval_id
+                                });
+                                if (categorie) {
+                                    switch (categorie.typ) {
+                                        case 'incoming':
+                                            sectionEntrys.incoming
+                                                ? (sectionEntrys.incoming += parseFloat(
+                                                      mainEntry.amount
+                                                  ))
+                                                : (sectionEntrys.incoming = parseFloat(
+                                                      mainEntry.amount
+                                                  ));
 
-                                        break;
-                                    case 'outgoing':
-                                        sectionEntrys.outgoing
-                                            ? (sectionEntrys.outgoing += parseFloat(
-                                                  mainEntry.amount
-                                              ))
-                                            : (sectionEntrys.outgoing = parseFloat(
-                                                  mainEntry.amount
-                                              ));
+                                            break;
+                                        case 'outgoing':
+                                            sectionEntrys.outgoing
+                                                ? (sectionEntrys.outgoing += parseFloat(
+                                                      mainEntry.amount
+                                                  ))
+                                                : (sectionEntrys.outgoing = parseFloat(
+                                                      mainEntry.amount
+                                                  ));
 
-                                        break;
+                                            break;
 
-                                    default:
-                                        break;
+                                        default:
+                                            break;
+                                    }
                                 }
                             }
+
+                            element.mainEntry = mainEntry;
+                            element.categorie = categorie;
+                            element.interval = interval;
+                            sectionEntrys.remaining =
+                                sectionEntrys.incoming - sectionEntrys.outgoing;
                         }
 
-                        element.mainEntry = mainEntry;
-                        element.categorie = categorie;
-                        element.interval = interval;
-                        sectionEntrys.remaining =
-                            sectionEntrys.incoming - sectionEntrys.outgoing;
+                        if (sectionEntrys.length > 0) {
+                            sections.push({
+                                title: strings(m[parseInt(date.getMonth())]),
+                                monthIndex: parseInt(date.getMonth() + 1),
+                                data: sectionEntrys,
+                                calc: {
+                                    incoming: sectionEntrys.incoming,
+                                    outgoing: sectionEntrys.outgoing,
+                                    remaining: sectionEntrys.remaining
+                                }
+                            });
+                        }
                     }
+                });
+            }
 
-                    if (sectionEntrys.length > 0) {
-                        sections.push({
-                            title: strings(m[parseInt(date.getMonth())]),
-                            monthIndex: parseInt(date.getMonth() + 1),
-                            data: sectionEntrys,
-                            calc: {
-                                incoming: sectionEntrys.incoming,
-                                outgoing: sectionEntrys.outgoing,
-                                remaining: sectionEntrys.remaining
-                            }
-                        });
-                    }
-                }
+            this.setState({
+                isLoading: false,
+                sections: sections
             });
+        } catch (error) {
+            error_helper._handleError('_setState', error);
         }
-
-        this.setState({
-            isLoading: false,
-            sections: sections
-        });
     }
 
     _getProgressForItem(item) {

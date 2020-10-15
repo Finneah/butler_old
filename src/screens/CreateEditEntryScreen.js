@@ -24,8 +24,9 @@ import Helper from '../Helper';
 import DateTimePicker from '@react-native-community/datetimepicker';
 import {Intervals, Entrys, MainEntrys} from '../database';
 import Queryable from 'vasern/vasern/src/core/vasern-queryable';
+import Error_Handler from '../Error_Handler';
 let helper = new Helper();
-
+let error_helper = new Error_Handler();
 class CreateEditEntryScreen extends Component {
     constructor() {
         super();
@@ -77,7 +78,7 @@ class CreateEditEntryScreen extends Component {
 
             this.setState({options, intervals: Intervals.data()});
         } catch (error) {
-            console.warn('componentDidMount', error);
+            error_helper._handleError('componentDidMount', error);
         }
     }
 
@@ -115,7 +116,7 @@ class CreateEditEntryScreen extends Component {
                 this._checkEntry();
             }
         } catch (error) {
-            console.warn('componentDidUpdate', error);
+            error_helper._handleError('componentDidUpdate', error);
         }
     }
 
@@ -130,7 +131,7 @@ class CreateEditEntryScreen extends Component {
                 descriptionIsValid: valid
             });
         } catch (error) {
-            console.warn('_check_Description', error);
+            error_helper._handleError('_check_Description', error);
         }
     }
 
@@ -144,7 +145,7 @@ class CreateEditEntryScreen extends Component {
                     !helper._checkValidFloatRegEx(this.state.entry.amount)
             });
         } catch (error) {
-            console.warn('_check_Amount', error);
+            error_helper._handleError('_check_Amount', error);
         }
     }
 
@@ -219,7 +220,7 @@ class CreateEditEntryScreen extends Component {
 
             this._createEntrys(newMainEntry, updatedMainEntry.interval);
         } catch (error) {
-            console.warn('_updateEntrys', error);
+            error_helper._handleError('_updateAllEntrys', error);
         }
     }
 
@@ -243,7 +244,7 @@ class CreateEditEntryScreen extends Component {
 
             this._createEntrys(createdMainEntry, mainEntry.interval);
         } catch (error) {
-            console.warn('_insertMainEntry', error);
+            error_helper._handleError('_insertMainEntry', error);
         }
     }
 
@@ -268,7 +269,7 @@ class CreateEditEntryScreen extends Component {
                     });
             });
         } catch (error) {
-            console.warn('_deleteEntrys', error);
+            error_helper._handleError('_deleteEntrys', error);
         }
     }
 
@@ -323,7 +324,7 @@ class CreateEditEntryScreen extends Component {
             Entrys.insert(entrys, true);
             this.props.navigation.goBack();
         } catch (error) {
-            console.warn('_createEntrys', error);
+            error_helper._handleError('_createEntrys', error);
         }
     }
 
@@ -349,7 +350,7 @@ class CreateEditEntryScreen extends Component {
                 this.setState({disabled: true});
             }
         } catch (error) {
-            console.warn('_checkEntry', error);
+            error_helper._handleError('_checkEntry', error);
         }
     }
 
@@ -587,7 +588,7 @@ class CreateEditEntryScreen extends Component {
                     return null;
             }
         } catch (error) {
-            console.warn('_renderItem', error);
+            error_helper._handleError('_renderItem', error);
             return null;
         }
     }

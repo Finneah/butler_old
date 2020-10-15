@@ -1,8 +1,9 @@
 import VasernDB from './db';
 import intervalJSON from './intervals.json';
 import categoriesJSON from './categories.json';
+import Error_Handler from '../Error_Handler';
 const {Entrys, MainEntrys, Categories, Intervals} = VasernDB;
-
+let error_helper = new Error_Handler();
 function _createIntervalsIfNotExist() {
     try {
         if (intervalJSON) {
@@ -20,7 +21,7 @@ function _createIntervalsIfNotExist() {
             }
         }
     } catch (error) {
-        console.warn('_createIntervalsIfNotExist', error);
+        error_helper._handleError('_createIntervalsIfNotExist', error);
     }
 }
 
@@ -41,7 +42,7 @@ function _createCategoriesIfNotExist() {
             }
         }
     } catch (error) {
-        console.warn('_createCategoriesIfNotExist', error);
+        error_helper._handleError('_createCategoriesIfNotExist', error);
     }
 }
 Intervals.onLoaded(() => {
