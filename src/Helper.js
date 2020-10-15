@@ -117,6 +117,7 @@ export default class Helper extends Component {
     _vibrate = () => {
         Vibration.vibrate([500, 500], false);
     };
+
     _getDates(startDate, stopDate, interval) {
         Date.prototype.addMonths = function (months) {
             var date = new Date(this.valueOf());

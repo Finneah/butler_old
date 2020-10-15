@@ -61,15 +61,6 @@ class CreateEditEntryScreen extends Component {
 
     componentDidMount() {
         try {
-            Intervals.onLoaded(() => {
-                this._createIntervalsIfNotExist();
-                this.setState({intervals: Intervals.data()});
-            });
-
-            Intervals.onChange(() => {
-                this.setState({intervals: Intervals.data()});
-            });
-
             var {params} = this.props.route;
 
             if (params && params.entry) {
@@ -79,27 +70,27 @@ class CreateEditEntryScreen extends Component {
 
             var options = [
                 {
-                    title: strings('DESCRIPTION'),
+                    title: strings('Description'),
                     input: true,
                     returnKeyType: 'next'
                 },
                 {
-                    title: strings('AMOUNT_TITLE'),
+                    title: strings('AmountTitle'),
                     input: true,
                     keyboardType:
                         Platform.OS == 'ios' ? 'decimal-pad' : 'decimal-pad',
                     returnKeyType: 'done'
                 },
                 {
-                    title: strings('CATEGORIE'),
+                    title: strings('Categorie'),
                     nav: 'Categories'
                 },
-                {title: strings('INTERVAL')},
-                {title: strings('FROM')},
-                {title: strings('TILL')}
+                {title: strings('Interval')},
+                {title: strings('From')},
+                {title: strings('Till')}
             ];
 
-            this.setState({options});
+            this.setState({options, intervals: Intervals.data()});
         } catch (error) {
             console.warn('componentDidMount', error);
         }
@@ -140,27 +131,6 @@ class CreateEditEntryScreen extends Component {
             }
         } catch (error) {
             console.warn('componentDidUpdate', error);
-        }
-    }
-
-    _createIntervalsIfNotExist() {
-        try {
-            if (intervalJSON) {
-                if (Intervals.data().length == 0) {
-                    Intervals.insert(intervalJSON, true);
-                    console.log('insert all');
-                } else if (intervalJSON.length != Intervals.data().length) {
-                    console.log(
-                        'else if',
-                        intervalJSON.length,
-                        Interval.data().length
-                    );
-                } else {
-                    console.log('all in');
-                }
-            }
-        } catch (error) {
-            console.warn('_createIntervalsIfNotExist', error);
         }
     }
 
@@ -302,7 +272,7 @@ class CreateEditEntryScreen extends Component {
             const {entry, options} = this.state;
 
             switch (item.title) {
-                case strings('DESCRIPTION'):
+                case strings('Description'):
                     return (
                         <ListItem>
                             <Left>
@@ -328,13 +298,13 @@ class CreateEditEntryScreen extends Component {
                                 {!entry.description ||
                                 entry.description.length < 3 ? (
                                     <Text note warning>
-                                        {strings('MISSING_INFORMATION')}
+                                        {strings('MissingInformaton')}
                                     </Text>
                                 ) : null}
                             </Body>
                         </ListItem>
                     );
-                case strings('AMOUNT_TITLE'):
+                case strings('AmountTitle'):
                     return (
                         <ListItem>
                             <Left>
@@ -358,25 +328,25 @@ class CreateEditEntryScreen extends Component {
                                 </Item>
                                 {!entry.amount || entry.amount == '' ? (
                                     <Text note warning>
-                                        {strings('MISSING_INFORMATION')}
+                                        {strings('MissingInformaton')}
                                     </Text>
                                 ) : !helper._checkValidFloatRegEx(
                                       entry.amount
                                   ) ? (
                                     <Text note warning>
-                                        {strings('INVALID_AMOUNT')}
+                                        {strings('InvalidAmount')}
                                     </Text>
                                 ) : null}
                             </Body>
                         </ListItem>
                     );
-                case strings('CATEGORIE'):
+                case strings('Categorie'):
                     return (
                         <ListItem
                             icon
                             onPress={() => {
                                 this.props.navigation.navigate('Categories', {
-                                    entry: entry
+                                    params: {entry: entry}
                                 });
                             }}
                         >
@@ -392,7 +362,7 @@ class CreateEditEntryScreen extends Component {
                             </Right>
                         </ListItem>
                     );
-                case strings('INTERVAL'):
+                case strings('Interval'):
                     var BUTTONS = [];
 
                     var intervals = this.state.intervals;
@@ -410,7 +380,7 @@ class CreateEditEntryScreen extends Component {
                                         options: BUTTONS,
 
                                         cancelButtonIndex: BUTTONS.length - 1,
-                                        title: 'Choose Interval'
+                                        title: strings('ChooseInterval')
                                     },
                                     (buttonIndex) => {
                                         if (buttonIndex != BUTTONS.length - 1) {
@@ -438,7 +408,7 @@ class CreateEditEntryScreen extends Component {
                             </Right>
                         </ListItem>
                     );
-                case strings('FROM'):
+                case strings('From'):
                     return (
                         <ListItem>
                             <Left>
@@ -476,7 +446,7 @@ class CreateEditEntryScreen extends Component {
                             </Right>
                         </ListItem>
                     );
-                case strings('TILL'):
+                case strings('Till'):
                     return (
                         <ListItem
                             onPress={() => {
@@ -556,7 +526,7 @@ class CreateEditEntryScreen extends Component {
                         </Button>
                     </Left>
                     <Body>
-                        <Title>{strings('CREATE_ENTRY')}</Title>
+                        <Title>{strings('CreateEntry')}</Title>
                     </Body>
                     <Right>
                         <Button

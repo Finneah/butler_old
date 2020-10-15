@@ -36,43 +36,7 @@ class CategoriesScreen extends Component {
     }
 
     componentDidMount() {
-        Categories.onLoaded(() => {
-            console.log('onLoaded', Categories.data());
-            this._createCategoriesIfNotExist();
-        });
-        Categories.onChange(() => {
-            console.log('onChange', Categories.data());
-            this.setState({categories: Categories.data()});
-        });
-    }
-
-    _createCategoriesIfNotExist() {
-        // if (categoriesJSON) {
-        //     categoriesJSON.forEach((element) => {
-        //         var categorie = queryObj.get({name: element.name});
-        //         Categories.remove({name: element.name});
-        //         if (!categorie) {
-        //             console.log(categorie, element);
-        //             // Categories.insert(element, true);
-        //         }
-        //     });
-        // }
-
-        if (categoriesJSON) {
-            if (Categories.data().length == 0) {
-                Categories.insert(categoriesJSON, true);
-                console.log('insert all');
-            } else if (categoriesJSON.length != Categories.data().length) {
-                console.log(
-                    'else if',
-                    categoriesJSON.length,
-                    Categories.data().length
-                );
-            } else {
-                console.log('all in');
-                this.setState({categories: Categories.data()});
-            }
-        }
+        this.setState({categories: Categories.data()});
     }
 
     _getFilteredCategories(typ) {
@@ -105,14 +69,14 @@ class CategoriesScreen extends Component {
                         </Button>
                     </Left>
                     <Body>
-                        <Title>{strings('CATEGORIES')}</Title>
+                        <Title>{strings('Categorie')}</Title>
                     </Body>
                     <Right></Right>
                 </Header>
                 <Tabs>
-                    <Tab heading={strings('INCOMINGS')}>
+                    <Tab heading={strings('Outgoings')}>
                         <FlatList
-                            data={this._getFilteredCategories('incoming')}
+                            data={this._getFilteredCategories('outgoing')}
                             keyExtractor={(item, index) => index.toString()}
                             scrollEnabled={true}
                             renderItem={({item}) => (
@@ -141,9 +105,9 @@ class CategoriesScreen extends Component {
                             )}
                         />
                     </Tab>
-                    <Tab heading={strings('OUTGOINGS')}>
+                    <Tab heading={strings('Incomings')}>
                         <FlatList
-                            data={this._getFilteredCategories('outgoing')}
+                            data={this._getFilteredCategories('incoming')}
                             keyExtractor={(item, index) => index.toString()}
                             scrollEnabled={true}
                             renderItem={({item}) => (

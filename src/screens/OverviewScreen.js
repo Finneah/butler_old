@@ -5,7 +5,6 @@ import {
     Card,
     CardItem,
     Container,
-    Fab,
     Header,
     Icon,
     Left,
@@ -16,6 +15,7 @@ import {
 
 import {
     ActivityIndicator,
+    Dimensions,
     FlatList,
     Pressable,
     StyleSheet,
@@ -29,8 +29,8 @@ import * as moment from 'moment';
 import {strings} from '../i18n';
 import {Categories, Entrys, Intervals, MainEntrys} from '../database';
 import Helper from '../Helper';
-import RealmDB from '../database/RealmDB';
-
+import {Table, TableWrapper, Col, Rows} from 'react-native-table-component';
+import GlobalColors from '../style/GlobalColors';
 let helper = new Helper();
 
 class OverviewScreen extends Component {
@@ -39,11 +39,7 @@ class OverviewScreen extends Component {
         this.state = {
             active: false,
             isLoading: true,
-            entrys: [],
             sections: [],
-            mainEntrys: [],
-            entrysVasern: undefined,
-            mainEntrysVasern: undefined,
             selected: false,
             selectedItem: undefined,
             intervals: undefined,
@@ -53,8 +49,6 @@ class OverviewScreen extends Component {
         };
     }
     componentDidMount() {
-        let realmDB = new RealmDB();
-        console.log(realmDB);
         Entrys.onLoaded(() => {
             console.log('Entrys loaded');
             this._setState();
@@ -71,26 +65,13 @@ class OverviewScreen extends Component {
     }
 
     _setState() {
-        var {selectedYear, sections} = this.state;
-
+        var {selectedYear} = this.state;
+        var sections = [];
         let entryQueryObj = new Queryable(Entrys.data());
         let mainEntryQueryObj = new Queryable(MainEntrys.data());
         let categorieQueryObj = new Queryable(Categories.data());
         let intervalQueryObj = new Queryable(Intervals.data());
-        var mainEntrys = [];
-        console.log('Entrys', Entrys.data());
-        var entrys = entryQueryObj
-            .filter({year: selectedYear.toString()})
-            .data();
-        // for (let i = 0; i < Entrys.data().length; i++) {
-        //     const element = Entrys.data()[i];
-        //     Entrys.remove({id: element.id}, true);
-        // }
-        // for (let i = 0; i < MainEntrys.data().length; i++) {
-        //     const element = MainEntrys.data()[i];
-        //     MainEntrys.remove({id: element.id}, true);
-        // }
-        console.log('entrys', entrys);
+
         var dateArray = helper._getDates(
             new Date('01/01.' + selectedYear),
             new Date('12/30.' + selectedYear),
@@ -107,7 +88,6 @@ class OverviewScreen extends Component {
                         month: (date.getMonth() + 1).toString()
                     })
                     .data();
-                var calc = {};
                 if (sectionEntrys) {
                     for (let i = 0; i < sectionEntrys.length; i++) {
                         const element = sectionEntrys[i];
@@ -123,19 +103,21 @@ class OverviewScreen extends Component {
                         if (categorie) {
                             switch (categorie.typ) {
                                 case 'incoming':
-                                    calc.incoming
-                                        ? calc.incoming +
-                                          parseFloat(mainEntry.amount)
-                                        : (calc.incoming = parseFloat(
+                                    sectionEntrys.incoming
+                                        ? (sectionEntrys.incoming += parseFloat(
+                                              mainEntry.amount
+                                          ))
+                                        : (sectionEntrys.incoming = parseFloat(
                                               mainEntry.amount
                                           ));
 
                                     break;
                                 case 'outgoing':
-                                    calc.outgoing
-                                        ? calc.outgoing +
-                                          parseFloat(mainEntry.amount)
-                                        : (calc.outgoing = parseFloat(
+                                    sectionEntrys.outgoing
+                                        ? (sectionEntrys.outgoing += parseFloat(
+                                              mainEntry.amount
+                                          ))
+                                        : (sectionEntrys.outgoing = parseFloat(
                                               mainEntry.amount
                                           ));
 
@@ -149,50 +131,29 @@ class OverviewScreen extends Component {
                         element.mainEntry = mainEntry;
                         element.categorie = categorie;
                         element.interval = interval;
-                        calc.remaining = calc.incoming - calc.outgoing;
+                        sectionEntrys.remaining =
+                            sectionEntrys.incoming - sectionEntrys.outgoing;
                     }
 
                     if (sectionEntrys.length > 0) {
                         sections.push({
-                            title: m[parseInt(date.getMonth())],
+                            title: strings(m[parseInt(date.getMonth())]),
                             data: sectionEntrys,
-                            calc: calc
+                            calc: {
+                                incoming: sectionEntrys.incoming,
+                                outgoing: sectionEntrys.outgoing,
+                                remaining: sectionEntrys.remaining
+                            }
                         });
                     }
                 }
             });
         }
 
-        /**
-         * sections = [{title:2020,data[]}]sections
-         */
-        // if (entrys.lenght > 0) {
-        //     for (let i = 1; i <= 12; i++) {
-        //         var data = {
-        //             tableTitle: ['Einnahmen', 'Ausgaben', 'Rest'],
-        //             einnahmen: 2400,
-        //             ausgaben: 2000,
-        //             rest: 400,
-        //             tableData: [[2400], [(2000 / 2400).toString()], ['40']],
-        //             month: i.toString(),
-        //             data: entryQueryObj.filter({year: selectedYear, month: i})
-        //         };
-        //         sections.push(data);
-        //     }
-        // }
-
         this.setState({
             isLoading: false,
-            entrys: entrys,
-            mainEntrys: mainEntrys,
             sections: sections
         });
-        // console.log('_setState', sections);
-    }
-
-    _getMonthTitle(item) {
-        var data = moment.months('de');
-        return data[parseInt(item.month - 1)];
     }
 
     _getProgressForItem(item) {
@@ -203,20 +164,26 @@ class OverviewScreen extends Component {
             item.calc.incoming ? item.calc.incoming : 0,
             item.calc.outgoing ? item.calc.outgoing : 0
         );
-
+        console.log(progress);
         return parseFloat(progress);
     }
 
     render() {
         const {sections, selectedYear, currentYear} = this.state;
-
+        const data = {
+            tableTitle: [
+                strings('Incomings'),
+                strings('Outgoings'),
+                strings('Remaining')
+            ],
+            tableData: [['200'], ['a'], ['1']]
+        };
         return (
             <Container>
                 <Header>
-                    <Left>{/* <ButlerIcon size={45} /> */}</Left>
+                    <Left></Left>
                     <Body>
                         <ButlerIcon size={50} />
-                        {/* <Title>{strings('APP_TITLE')}</Title> */}
                     </Body>
                     <Right>
                         <Button
@@ -234,13 +201,7 @@ class OverviewScreen extends Component {
                     </Right>
                 </Header>
                 {this.state.isLoading ? <ActivityIndicator /> : null}
-                {/* <Button
-                    onPress={() => {
-                        this._insertMainEntry();
-                    }}
-                >
-                    <Text>{'Insert'}</Text>
-                </Button> */}
+
                 {/* <View
                     style={{
                         flexDirection: 'row',
@@ -323,36 +284,53 @@ class OverviewScreen extends Component {
                         >
                             <Card>
                                 <CardItem header>
-                                    <Title style={styles.mainTitleText}>
-                                        {item.title}
-                                    </Title>
+                                    <Body>
+                                        <Title>{item.title}</Title>
+                                    </Body>
                                 </CardItem>
-
                                 <ProgressCircle
                                     style={{height: 120}}
                                     progress={this._getProgressForItem(item)}
                                     strokeWidth={10}
-                                    progressColor={'#66806D'}
+                                    progressColor={GlobalColors.accentColor}
                                 />
 
-                                {/* <View style={{padding: 20}}>
-                                    <Table borderStyle={{borderWidth: 0}}>
-                                        <TableWrapper style={styles.wrapper}>
-                                            <Col
-                                                data={item.tableTitle}
-                                                style={styles.titleCol}
-                                                heightArr={[28, 28]}
-                                                textStyle={styles.titleText}
-                                            />
-                                            <Rows
-                                                data={item.tableData}
-                                                flexArr={[1, 1]}
-                                                style={styles.row}
-                                                textStyle={styles.text}
-                                            />
-                                        </TableWrapper>
-                                    </Table>
-                                </View> */}
+                                <Table borderStyle={{borderWidth: 0}}>
+                                    <TableWrapper style={styles.wrapper}>
+                                        <Col
+                                            data={[
+                                                strings('Incomings'),
+                                                strings('Outgoings'),
+                                                strings('Remaining')
+                                            ]}
+                                            style={styles.titleCol}
+                                            heightArr={[20, 20]}
+                                            textStyle={styles.titleText}
+                                        />
+                                        <Rows
+                                            data={[
+                                                [
+                                                    item.calc.incoming.toString() +
+                                                        ' ' +
+                                                        strings('Currency')
+                                                ],
+                                                [
+                                                    item.calc.outgoing.toString() +
+                                                        ' ' +
+                                                        strings('Currency')
+                                                ],
+                                                [
+                                                    item.calc.remaining.toString() +
+                                                        ' ' +
+                                                        strings('Currency')
+                                                ]
+                                            ]}
+                                            flexArr={[1, 1]}
+                                            style={styles.row}
+                                            textStyle={styles.text}
+                                        />
+                                    </TableWrapper>
+                                </Table>
                                 <CardItem footer>
                                     <Button
                                         transparent
@@ -386,14 +364,6 @@ class OverviewScreen extends Component {
                         </Card>
                     )}
                 />
-                {/* <Fab
-                    position="bottomRight"
-                    onPress={() => {
-                        this.props.navigation.navigate('CreateEditEntry');
-                    }}
-                >
-                    <Icon name="add" />
-                </Fab> */}
             </Container>
         );
     }
@@ -406,8 +376,7 @@ const styles = StyleSheet.create({
         padding: 20
     },
     mainTitleText: {
-        fontSize: 20,
-        fontWeight: 'bold'
+        textAlign: 'center'
     },
     container: {flex: 1, padding: 20, paddingTop: 30},
     dateTimeContainer: {
@@ -417,7 +386,7 @@ const styles = StyleSheet.create({
     },
     wrapper: {flexDirection: 'row', margin: 10},
     titleCol: {flex: 1},
-    titleText: {fontSize: 18, fontWeight: 'bold'},
-    row: {height: 28},
+    titleText: {fontSize: 14, fontWeight: 'bold', textAlign: 'left'},
+    row: {height: 20},
     text: {textAlign: 'center'}
 });
