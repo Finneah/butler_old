@@ -26,7 +26,7 @@ import {Intervals, Entrys, MainEntrys} from '../database';
 import Queryable from 'vasern/vasern/src/core/vasern-queryable';
 import Error_Handler from '../Error_Handler';
 let helper = new Helper();
-let error_helper = new Error_Handler();
+let error_handler = new Error_Handler();
 class CreateEditEntryScreen extends Component {
     constructor() {
         super();
@@ -78,7 +78,7 @@ class CreateEditEntryScreen extends Component {
 
             this.setState({options, intervals: Intervals.data()});
         } catch (error) {
-            error_helper._handleError('componentDidMount', error);
+            error_handler._handleError('componentDidMount', error);
         }
     }
 
@@ -116,7 +116,7 @@ class CreateEditEntryScreen extends Component {
                 this._checkEntry();
             }
         } catch (error) {
-            error_helper._handleError('componentDidUpdate', error);
+            error_handler._handleError('componentDidUpdate', error);
         }
     }
 
@@ -131,7 +131,7 @@ class CreateEditEntryScreen extends Component {
                 descriptionIsValid: valid
             });
         } catch (error) {
-            error_helper._handleError('_check_Description', error);
+            error_handler._handleError('_check_Description', error);
         }
     }
 
@@ -145,7 +145,7 @@ class CreateEditEntryScreen extends Component {
                     !helper._checkValidFloatRegEx(this.state.entry.amount)
             });
         } catch (error) {
-            error_helper._handleError('_check_Amount', error);
+            error_handler._handleError('_check_Amount', error);
         }
     }
 
@@ -220,7 +220,7 @@ class CreateEditEntryScreen extends Component {
 
             this._createEntrys(newMainEntry, updatedMainEntry.interval);
         } catch (error) {
-            error_helper._handleError('_updateAllEntrys', error);
+            error_handler._handleError('_updateAllEntrys', error);
         }
     }
 
@@ -244,7 +244,7 @@ class CreateEditEntryScreen extends Component {
 
             this._createEntrys(createdMainEntry, mainEntry.interval);
         } catch (error) {
-            error_helper._handleError('_insertMainEntry', error);
+            error_handler._handleError('_insertMainEntry', error);
         }
     }
 
@@ -269,19 +269,18 @@ class CreateEditEntryScreen extends Component {
                     });
             });
         } catch (error) {
-            error_helper._handleError('_deleteEntrys', error);
+            error_handler._handleError('_deleteEntrys', error);
         }
     }
 
     _createEntrys(mainEntry, interval) {
-        Date.prototype.addMonths = function (months) {
-            var date = new Date(this.valueOf());
+        function addMonths(oldDate, months) {
+            var date = new Date(oldDate);
             date.setMonth(date.getMonth() + months);
             return date;
-        };
-
+        }
         function getDates(startDate, stopDate, interval) {
-            var dateArray = new Array();
+            var dateArray = [];
             var currentDate = startDate;
             if (interval == 0) {
                 const newEntry = {
@@ -302,7 +301,7 @@ class CreateEditEntryScreen extends Component {
                 };
                 dateArray.push(newEntry);
 
-                currentDate = currentDate.addMonths(interval);
+                currentDate = addMonths(currentDate, interval);
             }
             return dateArray;
         }
@@ -324,7 +323,7 @@ class CreateEditEntryScreen extends Component {
             Entrys.insert(entrys, true);
             this.props.navigation.goBack();
         } catch (error) {
-            error_helper._handleError('_createEntrys', error);
+            error_handler._handleError('_createEntrys', error);
         }
     }
 
@@ -350,7 +349,7 @@ class CreateEditEntryScreen extends Component {
                 this.setState({disabled: true});
             }
         } catch (error) {
-            error_helper._handleError('_checkEntry', error);
+            error_handler._handleError('_checkEntry', error);
         }
     }
 
@@ -588,7 +587,7 @@ class CreateEditEntryScreen extends Component {
                     return null;
             }
         } catch (error) {
-            error_helper._handleError('_renderItem', error);
+            error_handler._handleError('_renderItem', error);
             return null;
         }
     }

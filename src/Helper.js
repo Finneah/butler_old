@@ -119,13 +119,13 @@ export default class Helper extends Component {
     };
 
     _getDates(startDate, stopDate, interval) {
-        Date.prototype.addMonths = function (months) {
-            var date = new Date(this.valueOf());
+        function addMonths(oldDate, months) {
+            var date = new Date(oldDate);
             date.setMonth(date.getMonth() + months);
             return date;
-        };
+        }
         function getDates(startDate, stopDate, interval) {
-            var dateArray = new Array();
+            var dateArray = [];
             var currentDate = startDate;
             if (interval == 0) {
                 dateArray.push(startDate);
@@ -135,7 +135,7 @@ export default class Helper extends Component {
             while (currentDate <= stopDate) {
                 dateArray.push(new Date(currentDate));
 
-                currentDate = currentDate.addMonths(interval);
+                currentDate = addMonths(currentDate, interval);
             }
             return dateArray;
         }

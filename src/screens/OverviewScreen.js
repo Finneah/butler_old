@@ -10,8 +10,7 @@ import {
     Left,
     Right,
     Text,
-    Title,
-    Toast
+    Title
 } from 'native-base';
 
 import {
@@ -34,7 +33,7 @@ import {Table, TableWrapper, Col, Rows} from 'react-native-table-component';
 import GlobalColors from '../style/GlobalColors';
 import Error_Handler from '../Error_Handler';
 let helper = new Helper();
-let error_helper = new Error_Handler();
+let error_handler = new Error_Handler();
 class OverviewScreen extends Component {
     constructor() {
         super();
@@ -56,19 +55,11 @@ class OverviewScreen extends Component {
         Entrys.onLoaded(() => {
             console.info('Entrys loaded');
 
-            Toast.show({
-                text: 'Entrys loaded ' + Entrys.data().length.toString(),
-                buttonText: strings('Ok')
-            });
             this._setState();
         });
 
         Entrys.onChange(() => {
             console.info('Entrys changed');
-            Toast.show({
-                text: 'Entrys changed ' + Entrys.data().length.toString(),
-                buttonText: strings('Ok')
-            });
 
             this._setState();
         });
@@ -95,14 +86,11 @@ class OverviewScreen extends Component {
             let intervalQueryObj = new Queryable(Intervals.data());
 
             var dateArray = helper._getDates(
-                new Date('01/01.' + selectedYear),
-                new Date('12/30.' + selectedYear),
+                new Date('01/01/' + selectedYear),
+                new Date('12/30/' + selectedYear),
                 1
             );
-            Toast.show({
-                text: 'dateArray ' + dateArray.length.toString(),
-                buttonText: strings('Ok')
-            });
+
             if (dateArray) {
                 dateArray.forEach((date) => {
                     var m = moment.months('de');
@@ -184,7 +172,7 @@ class OverviewScreen extends Component {
                 sections: sections
             });
         } catch (error) {
-            error_helper._handleError('_setState', error);
+            error_handler._handleError('_setState', error);
         }
     }
 
@@ -261,7 +249,7 @@ class OverviewScreen extends Component {
                     <Body>
                         <Pressable
                             onLongPress={() => {
-                                Alert.alert('Alle Daten löschen?', '', [
+                                Alert.alert(strings('DeleteAllData'), '', [
                                     {
                                         text: strings('Cancel'),
                                         onPress: () => {},
@@ -269,7 +257,7 @@ class OverviewScreen extends Component {
                                     },
 
                                     {
-                                        text: 'Löschen',
+                                        text: strings('Delete'),
                                         style: 'destructive',
                                         onPress: () => {
                                             Entrys.perform(function (db) {
