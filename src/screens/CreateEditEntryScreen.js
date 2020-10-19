@@ -172,19 +172,19 @@ class CreateEditEntryScreen extends Component {
                     console.log(BUTTONS[buttonIndex]);
                     switch (buttonIndex) {
                         case 0: // alle
-                            this._updateAllEntrys();
+                            this._updateAllEntrys(entry);
+                            this.props.navigation.goBack();
                             break;
                         case 1: // alle zukünftigen
-                            Toast.show({
-                                text: strings('IcantDoThatYet'),
-                                buttonText: strings('Ok')
-                            });
+                            this._updateAllFutureEntrys(entry);
+                            this.props.navigation.goBack();
                             break;
                         case 2: // nur dieser
                             Toast.show({
                                 text: strings('IcantDoThatYet'),
                                 buttonText: strings('Ok')
                             });
+                            // this.props.navigation.goBack();
                             break;
 
                         default:
@@ -194,13 +194,12 @@ class CreateEditEntryScreen extends Component {
             );
         } else {
             this._createNewEntry();
+            this.props.navigation.goBack();
         }
     }
 
-    async _updateAllEntrys() {
+    async _updateAllEntrys(entry) {
         try {
-            var {entry} = this.state;
-
             var id = entry.id;
             var updatedMainEntry = {
                 amount: entry.amount,
@@ -210,6 +209,7 @@ class CreateEditEntryScreen extends Component {
                 periodFrom: entry.periodFrom,
                 periodTill: entry.periodTill ? entry.periodTill : ''
             };
+
             var newMainEntry = MainEntrys.update(
                 {id: id},
                 updatedMainEntry,
@@ -222,6 +222,82 @@ class CreateEditEntryScreen extends Component {
         } catch (error) {
             error_handler._handleError('_updateAllEntrys', error);
         }
+    }
+
+    async _updateAllFutureEntrys() {
+        try {
+            var {entry} = this.state;
+            let mainEntryQueryObj = new Queryable(MainEntrys.data());
+            var id = entry.id;
+            var oldEntry = mainEntryQueryObj.get({id: entry.id});
+            var updatedMainEntry = {
+                amount: entry.amount,
+                categorie: entry.categorie,
+                interval: entry.interval,
+                description: entry.description,
+                periodFrom: entry.periodFrom,
+                periodTill: entry.periodTill ? entry.periodTill : ''
+            };
+            this._checkDatesForUpdateAllFutureEntrys(
+                oldEntry,
+                updatedMainEntry
+            );
+
+            // var newMainEntry = MainEntrys.update(
+            //     {id: id},
+            //     updatedMainEntry,
+            //     true
+            // );
+
+            // await this._deleteEntrys(id);
+
+            // this._createEntrys(newMainEntry, updatedMainEntry.interval);
+        } catch (error) {
+            error_handler._handleError('_updateAllFutureEntrys', error);
+        }
+    }
+
+    _checkDatesForUpdateAllFutureEntrys(oldEntry, updatedMainEntry) {
+        if (typeof oldEntry.periodFrom == 'string') {
+            oldEntry.periodFrom = new Date(oldEntry.periodFrom);
+        }
+        if (typeof oldEntry.periodTill == 'string') {
+            oldEntry.periodTill = new Date(oldEntry.periodTill);
+        }
+
+        /**
+         * wenn neues Startdatum > als altest StartDatum
+         * bsp
+         * alt = August 2020 / neu = Oktober 2020
+         * alter MainEntry Till September
+         **/
+        if (updatedMainEntry.periodFrom > oldEntry.periodFrom) {
+            oldEntry.periodTill = new Date(updatedMainEntry.periodFrom);
+            oldEntry.periodTill.setMonth(
+                updatedMainEntry.periodFrom.getMonth() - 1
+            );
+
+            /**
+             * wenn neues Enddatum > als altest Enddatum
+             * wenn neues Enddatum == altes Enddatum
+             */
+            this._updateAllEntrys(oldEntry);
+
+            this._createNewEntry(
+                updatedMainEntry,
+                updatedMainEntry.interval.key
+            );
+
+            /**
+             * wenn neues Enddatum < altes Enddatum
+             * wenn neues Enddatum == altes Enddatum
+             */
+        }
+        /**
+         * wenn neues Startdatum < altes StartDatum
+         *
+         * wenn neues Startdatum == altes StartDatum
+         */
     }
 
     _createNewEntry() {
@@ -321,7 +397,6 @@ class CreateEditEntryScreen extends Component {
             );
 
             Entrys.insert(entrys, true);
-            this.props.navigation.goBack();
         } catch (error) {
             error_handler._handleError('_createEntrys', error);
         }

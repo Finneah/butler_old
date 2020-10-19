@@ -10,6 +10,7 @@ export default class Error_Handler extends Component {
     // LOGFILE = RNFetchBlob.fs.dirs.DocumentDir + '/' + 'toolbox_errorlog.txt';
 
     _handleError(pos, err) {
+        console.warn(err);
         Alert.alert(
             'SORRY',
             'SOMETHING_GONE_WRONG' +
