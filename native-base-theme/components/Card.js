@@ -19,11 +19,12 @@ export default (variables /* : * */ = variable) => {
             shadowOpacity: null,
             elevation: null
         },
+        '.overviewCard': {shadowColor: variables.brandSecondary},
         marginVertical: 20,
         marginHorizontal: 20,
         borderWidth: variables.borderWidth,
         borderRadius: variables.cardBorderRadius,
-        borderColor: variables.cardBorderColor,
+        borderColor: 'transparent', // variables.cardBorderColor,
         flexWrap: 'nowrap',
         backgroundColor: variables.cardDefaultBg,
         shadowColor: '#000',

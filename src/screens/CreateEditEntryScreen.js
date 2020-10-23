@@ -25,6 +25,7 @@ import DateTimePicker from '@react-native-community/datetimepicker';
 import {Intervals, Entrys, MainEntrys} from '../database';
 import Queryable from 'vasern/vasern/src/core/vasern-queryable';
 import Error_Handler from '../Error_Handler';
+import ChooseUpdateModal from '../components/ChooseUpdateModal';
 let helper = new Helper();
 let error_handler = new Error_Handler();
 class CreateEditEntryScreen extends Component {
@@ -32,13 +33,16 @@ class CreateEditEntryScreen extends Component {
         super();
         this.state = {
             showTillDatePicker: false,
+            showModalChooseUpdate: false,
             disabled: false,
             descriptionIsValid: false,
             amountIsValid: false,
             intervals: undefined,
             categories: undefined,
             entry: {},
-            options: []
+            options: [],
+            updateMainEntryArray: [],
+            isTest: false
         };
     }
 
@@ -149,87 +153,50 @@ class CreateEditEntryScreen extends Component {
         }
     }
 
-    _insertOrUpdateEntry() {
-        var {entry} = this.state;
+    async _insertOrUpdateEntry() {
+        try {
+            var {entry} = this.state;
 
-        if (entry.id) {
-            var BUTTONS = [
-                strings('All'),
-                strings('AllForFuture'),
-                strings('OnlyThisEntry')
-            ];
-
-            BUTTONS.push(strings('Cancel'));
-
-            ActionSheet.show(
-                {
-                    options: BUTTONS,
-
-                    cancelButtonIndex: BUTTONS.length - 1,
-                    title: strings('AskUpdateSerie')
-                },
-                (buttonIndex) => {
-                    console.log(BUTTONS[buttonIndex]);
-                    switch (buttonIndex) {
-                        case 0: // alle
-                            this._updateAllEntrys(entry);
-                            this.props.navigation.goBack();
-                            break;
-                        case 1: // alle zukünftigen
-                            this._updateAllFutureEntrys(entry);
-                            this.props.navigation.goBack();
-                            break;
-                        case 2: // nur dieser
-                            Toast.show({
-                                text: strings('IcantDoThatYet'),
-                                buttonText: strings('Ok')
-                            });
-                            // this.props.navigation.goBack();
-                            break;
-
-                        default:
-                            break;
-                    }
-                }
-            );
-        } else {
-            this._createNewEntry();
-            this.props.navigation.goBack();
+            if (entry.id) {
+                await this._updateMainEntrysAndEntrys();
+            } else {
+                await this._insertMainEntry((goBack = true));
+            }
+        } catch (error) {
+            error_handler._handleError('_insertOrUpdateEntry', error);
         }
     }
 
-    async _updateAllEntrys(entry) {
+    async _updateAllEntrys(mainEntry, id) {
         try {
-            var id = entry.id;
-            var updatedMainEntry = {
-                amount: entry.amount,
-                categorie: entry.categorie,
-                interval: entry.interval,
-                description: entry.description,
-                periodFrom: entry.periodFrom,
-                periodTill: entry.periodTill ? entry.periodTill : ''
-            };
+            if (!this.state.isTest) {
+                var newMainEntry = MainEntrys.update(
+                    {id: id},
+                    {
+                        amount: mainEntry.amount,
+                        categorie: mainEntry.categorie,
+                        description: mainEntry.description,
+                        interval: mainEntry.interval,
+                        periodFrom: mainEntry.periodFrom,
+                        periodTill: mainEntry.periodTill
+                    },
+                    true
+                );
 
-            var newMainEntry = MainEntrys.update(
-                {id: id},
-                updatedMainEntry,
-                true
-            );
+                await this._deleteEntrys(newMainEntry.id);
 
-            await this._deleteEntrys(id);
-
-            this._createEntrys(newMainEntry, updatedMainEntry.interval);
+                await this._createEntrys(newMainEntry, newMainEntry.interval);
+            }
         } catch (error) {
             error_handler._handleError('_updateAllEntrys', error);
         }
     }
 
-    async _updateAllFutureEntrys() {
+    async _updateMainEntrysAndEntrys() {
         try {
             var {entry} = this.state;
             let mainEntryQueryObj = new Queryable(MainEntrys.data());
-            var id = entry.id;
-            var oldEntry = mainEntryQueryObj.get({id: entry.id});
+            var oldMainEntry = mainEntryQueryObj.get({id: entry.id});
             var updatedMainEntry = {
                 amount: entry.amount,
                 categorie: entry.categorie,
@@ -238,75 +205,233 @@ class CreateEditEntryScreen extends Component {
                 periodFrom: entry.periodFrom,
                 periodTill: entry.periodTill ? entry.periodTill : ''
             };
-            this._checkDatesForUpdateAllFutureEntrys(
-                oldEntry,
-                updatedMainEntry
-            );
 
-            // var newMainEntry = MainEntrys.update(
-            //     {id: id},
-            //     updatedMainEntry,
-            //     true
-            // );
+            if (typeof oldMainEntry.periodFrom == 'string') {
+                oldMainEntry.periodFrom = new Date(oldMainEntry.periodFrom);
+            }
+            if (typeof oldMainEntry.periodTill == 'string') {
+                oldMainEntry.periodTill = new Date(oldMainEntry.periodTill);
+            }
+            var expression =
+                updatedMainEntry.periodFrom < oldMainEntry.periodFrom &&
+                updatedMainEntry.periodTill > oldMainEntry.periodTill;
+            var expression1 =
+                updatedMainEntry.periodFrom < oldMainEntry.periodFrom &&
+                updatedMainEntry.periodTill == oldMainEntry.periodTill;
 
-            // await this._deleteEntrys(id);
+            var expression2 =
+                updatedMainEntry.periodFrom == oldMainEntry.periodFrom &&
+                updatedMainEntry.periodTill == oldMainEntry.periodTill;
+            var expression3 =
+                updatedMainEntry.periodFrom == oldMainEntry.periodFrom &&
+                updatedMainEntry.periodTill > oldMainEntry.periodTill;
 
-            // this._createEntrys(newMainEntry, updatedMainEntry.interval);
+            if (expression || expression1 || expression2 || expression3) {
+                // change all
+
+                this._updateAllEntrys(updatedMainEntry, oldMainEntry.id);
+                this.props.navigation.goBack();
+            } else {
+                this._createUpdateEntryArray(updatedMainEntry, oldMainEntry);
+            }
         } catch (error) {
-            error_handler._handleError('_updateAllFutureEntrys', error);
+            error_handler._handleError('_updateMainEntrysAndEntrys', error);
         }
     }
 
-    _checkDatesForUpdateAllFutureEntrys(oldEntry, updatedMainEntry) {
-        if (typeof oldEntry.periodFrom == 'string') {
-            oldEntry.periodFrom = new Date(oldEntry.periodFrom);
-        }
-        if (typeof oldEntry.periodTill == 'string') {
-            oldEntry.periodTill = new Date(oldEntry.periodTill);
-        }
-
-        /**
-         * wenn neues Startdatum > als altest StartDatum
-         * bsp
-         * alt = August 2020 / neu = Oktober 2020
-         * alter MainEntry Till September
-         **/
-        if (updatedMainEntry.periodFrom > oldEntry.periodFrom) {
-            oldEntry.periodTill = new Date(updatedMainEntry.periodFrom);
-            oldEntry.periodTill.setMonth(
-                updatedMainEntry.periodFrom.getMonth() - 1
-            );
-
-            /**
-             * wenn neues Enddatum > als altest Enddatum
-             * wenn neues Enddatum == altes Enddatum
-             */
-            this._updateAllEntrys(oldEntry);
-
-            this._createNewEntry(
-                updatedMainEntry,
-                updatedMainEntry.interval.key
-            );
-
-            /**
-             * wenn neues Enddatum < altes Enddatum
-             * wenn neues Enddatum == altes Enddatum
-             */
-        }
-        /**
-         * wenn neues Startdatum < altes StartDatum
-         *
-         * wenn neues Startdatum == altes StartDatum
-         */
-    }
-
-    _createNewEntry() {
-        this._insertMainEntry();
-    }
-
-    _insertMainEntry() {
+    _createUpdateEntryArray(updatedMainEntry, oldMainEntry) {
         try {
-            var {entry} = this.state;
+            if (
+                updatedMainEntry.periodFrom > oldMainEntry.periodFrom &&
+                updatedMainEntry.periodTill < oldMainEntry.periodTill
+            ) {
+                var updateMainEntryArray = [];
+
+                updateMainEntryArray.push({
+                    ...oldMainEntry,
+                    id: undefined,
+                    periodFrom: oldMainEntry.periodFrom,
+                    periodTill: new Date(
+                        new Date(updatedMainEntry.periodFrom).setMonth(
+                            updatedMainEntry.periodFrom.getMonth() - 1
+                        )
+                    ),
+                    deletable: true,
+                    deleteIsActive: false,
+                    takeIsActive: true
+                });
+
+                updateMainEntryArray.push({
+                    ...updatedMainEntry,
+                    id: oldMainEntry.id,
+                    periodTill: new Date(
+                        new Date(updatedMainEntry.periodTill).setMonth(
+                            updatedMainEntry.periodTill.getMonth()
+                        )
+                    ),
+                    deletable: false
+                });
+
+                updateMainEntryArray.push({
+                    ...oldMainEntry,
+                    id: undefined,
+                    periodFrom: new Date(
+                        new Date(updatedMainEntry.periodTill).setMonth(
+                            updatedMainEntry.periodTill.getMonth() + 1
+                        )
+                    ),
+                    periodTill: oldMainEntry.periodTill,
+                    deletable: true,
+                    deleteIsActive: false,
+                    takeIsActive: true,
+                    delete: false
+                });
+                this.setState({
+                    updateMainEntryArray: updateMainEntryArray,
+                    showModalChooseUpdate: true
+                });
+            } else if (
+                updatedMainEntry.periodFrom < oldMainEntry.periodFrom &&
+                updatedMainEntry.periodTill < oldMainEntry.periodTill
+            ) {
+                var updateMainEntryArray = [];
+
+                updateMainEntryArray.push({
+                    ...updatedMainEntry,
+                    id: oldMainEntry.id,
+                    deletable: false
+                });
+
+                updateMainEntryArray.push({
+                    ...oldMainEntry,
+                    id: undefined,
+                    periodFrom: new Date(
+                        new Date(updatedMainEntry.periodTill).setMonth(
+                            updatedMainEntry.periodTill.getMonth() + 1
+                        )
+                    ),
+                    periodTill: oldMainEntry.periodTill,
+                    deletable: true,
+
+                    deleteIsActive: false,
+                    takeIsActive: true
+                });
+                this.setState({
+                    updateMainEntryArray: updateMainEntryArray,
+                    showModalChooseUpdate: true
+                });
+            } else if (
+                updatedMainEntry.periodFrom > oldMainEntry.periodFrom &&
+                updatedMainEntry.periodTill == oldMainEntry.periodTill
+            ) {
+                var updateMainEntryArray = [];
+
+                updateMainEntryArray.push({
+                    ...oldMainEntry,
+                    id: undefined,
+                    periodFrom: oldMainEntry.periodFrom,
+                    periodTill: new Date(
+                        new Date(updatedMainEntry.periodFrom).setMonth(
+                            updatedMainEntry.periodFrom.getMonth() - 1
+                        )
+                    ),
+                    deletable: true,
+
+                    deleteIsActive: false,
+                    takeIsActive: true
+                });
+
+                updateMainEntryArray.push({
+                    ...updatedMainEntry,
+                    id: oldMainEntry.id,
+                    deletable: false
+                });
+
+                this.setState({
+                    updateMainEntryArray: updateMainEntryArray,
+                    showModalChooseUpdate: true
+                });
+            } else if (
+                updatedMainEntry.periodFrom == oldMainEntry.periodFrom &&
+                updatedMainEntry.periodTill < oldMainEntry.periodTill
+            ) {
+                var updateMainEntryArray = [];
+                updateMainEntryArray.push({
+                    ...updatedMainEntry,
+                    id: oldMainEntry.id,
+                    deletable: false
+                });
+
+                updateMainEntryArray.push({
+                    ...oldMainEntry,
+                    id: undefined,
+                    periodFrom: new Date(
+                        new Date(updatedMainEntry.periodTill).setMonth(
+                            new Date(updatedMainEntry.periodTill).getMonth() + 1
+                        )
+                    ),
+                    periodTill: oldMainEntry.periodTill,
+                    deletable: true,
+
+                    deleteIsActive: false,
+                    takeIsActive: true
+                });
+
+                this.setState({
+                    updateMainEntryArray: updateMainEntryArray,
+                    showModalChooseUpdate: true
+                });
+            } else {
+                console.log('_createUpdateEntryArray', 'oops');
+                console.log(updatedMainEntry, oldMainEntry);
+            }
+        } catch (error) {
+            error_handler._handleError('_createUpdateEntryArray', error);
+        }
+    }
+
+    async _insertAndUpdateSubmittedEntrys() {
+        try {
+            const {updateMainEntryArray} = this.state;
+
+            for (let i = 0; i < updateMainEntryArray.length; i++) {
+                const newMainEntry = updateMainEntryArray[i];
+                if (newMainEntry.id) {
+                    // update
+                    await this._updateAllEntrys(newMainEntry, newMainEntry.id);
+                } else {
+                    if (newMainEntry.takeIsActive) {
+                        // erstellen
+                        await this._insertMainEntry(newMainEntry);
+                    }
+                }
+            }
+
+            this.setState({
+                showModalChooseUpdate: false
+            });
+        } catch (error) {
+            error_handler._handleError(
+                '_insertAndUpdateSubmittedEntrys',
+                error
+            );
+        }
+    }
+
+    async _insertMainEntry(entry, goBack) {
+        try {
+            if (!entry) {
+                entry = this.state.entry;
+            }
+            if (entry.periodFrom && typeof entry.periodFrom == 'string') {
+                entry.periodFrom = new Date(entry.periodFrom);
+            }
+            if (entry.periodTill && typeof entry.periodTill == 'string') {
+                entry.periodTill = new Date(entry.periodTill);
+            }
+            entry.periodFrom = new Date(entry.periodFrom.toDateString());
+            entry.periodTill = new Date(entry.periodTill.toDateString());
+
             var mainEntry = {
                 amount: entry.amount,
                 categorie: entry.categorie,
@@ -316,21 +441,30 @@ class CreateEditEntryScreen extends Component {
                 periodTill: entry.periodTill ? entry.periodTill : ''
             };
 
-            var createdMainEntry = MainEntrys.insert(mainEntry)[0];
-
-            this._createEntrys(createdMainEntry, mainEntry.interval);
+            var createdMainEntry = mainEntry;
+            if (!this.state.isTest) {
+                createdMainEntry = await MainEntrys.insert(mainEntry)[0];
+                await this._createEntrys(
+                    createdMainEntry,
+                    mainEntry.interval,
+                    goBack
+                );
+            }
         } catch (error) {
             error_handler._handleError('_insertMainEntry', error);
         }
     }
 
     async _deleteMainEntryAndEntrys() {
-        var id = this.state.entry.id;
-        this._deleteEntrys(id);
+        try {
+            var id = this.state.entry.id;
+            this._deleteEntrys(id);
 
-        MainEntrys.remove({id: this.state.entry.id}, true);
-        // this.props.navigation.navigate('Overview');
-        this.props.navigation.goBack();
+            MainEntrys.remove({id: this.state.entry.id}, true);
+            this.props.navigation.goBack();
+        } catch (error) {
+            error_handler._handleError('_deleteMainEntryAndEntrys', error);
+        }
     }
 
     _deleteEntrys(id) {
@@ -349,37 +483,47 @@ class CreateEditEntryScreen extends Component {
         }
     }
 
-    _createEntrys(mainEntry, interval) {
+    async _createEntrys(mainEntry, interval, goBack) {
         function addMonths(oldDate, months) {
-            var date = new Date(oldDate);
-            date.setMonth(date.getMonth() + months);
-            return date;
+            try {
+                var date = new Date(oldDate);
+
+                date.setMonth(date.getMonth() + months);
+                return date;
+            } catch (error) {
+                error_handler._handleError('addMonths', error);
+            }
         }
         function getDates(startDate, stopDate, interval) {
-            var dateArray = [];
-            var currentDate = startDate;
-            if (interval == 0) {
-                const newEntry = {
-                    month: parseInt(startDate.getMonth() + 1),
-                    year: parseInt(startDate.getFullYear()),
-                    mainEntry: mainEntry
-                };
-                dateArray.push(newEntry);
+            try {
+                var dateArray = [];
+                var currentDate = startDate;
 
+                if (interval == 0) {
+                    const newEntry = {
+                        month: parseInt(startDate.getMonth() + 1),
+                        year: parseInt(startDate.getFullYear()),
+                        mainEntry: mainEntry
+                    };
+                    dateArray.push(newEntry);
+
+                    return dateArray;
+                }
+
+                while (currentDate <= stopDate) {
+                    const newEntry = {
+                        month: new Date(currentDate).getMonth() + 1,
+                        year: new Date(currentDate).getFullYear(),
+                        mainEntry: mainEntry
+                    };
+                    dateArray.push(newEntry);
+
+                    currentDate = addMonths(currentDate, interval);
+                }
                 return dateArray;
+            } catch (error) {
+                error_handler._handleError('getDates', error);
             }
-
-            while (currentDate <= stopDate) {
-                const newEntry = {
-                    month: new Date(currentDate).getMonth() + 1,
-                    year: new Date(currentDate).getFullYear(),
-                    mainEntry: mainEntry
-                };
-                dateArray.push(newEntry);
-
-                currentDate = addMonths(currentDate, interval);
-            }
-            return dateArray;
         }
 
         try {
@@ -396,7 +540,12 @@ class CreateEditEntryScreen extends Component {
                 parseInt(interval.key)
             );
 
-            Entrys.insert(entrys, true);
+            if (!this.state.isTest) {
+                await Entrys.insert(entrys, true);
+                if (goBack) {
+                    this.props.navigation.goBack();
+                }
+            }
         } catch (error) {
             error_handler._handleError('_createEntrys', error);
         }
@@ -669,7 +818,6 @@ class CreateEditEntryScreen extends Component {
 
     render() {
         const {options, entry} = this.state;
-
         return (
             <Container>
                 <Header>
@@ -704,7 +852,25 @@ class CreateEditEntryScreen extends Component {
                         </Button>
                     </Right>
                 </Header>
-
+                <ChooseUpdateModal
+                    showModalChooseUpdate={this.state.showModalChooseUpdate}
+                    updateMainEntryArray={this.state.updateMainEntryArray}
+                    onSetData={(data) => {
+                        this.setState({updateMainEntryArray: data});
+                    }}
+                    toggleShowChooseUpdateModal={(visible) => {
+                        this.setState({
+                            showModalChooseUpdate:
+                                visible != undefined
+                                    ? visible
+                                    : !this.state.showModalChooseUpdate
+                        });
+                    }}
+                    onSaveHandler={() => {
+                        this._insertAndUpdateSubmittedEntrys();
+                        this.props.navigation.goBack();
+                    }}
+                />
                 <FlatList
                     data={options}
                     keyExtractor={(item, index) => index.toString()}

@@ -310,6 +310,8 @@ PODS:
     - React
   - RNI18n (2.0.15):
     - React
+  - RNReactNativeModalPatch (1.0.0):
+    - React
   - RNReanimated (1.13.1):
     - React
   - RNScreens (2.11.0):
@@ -380,6 +382,7 @@ DEPENDENCIES:
   - "RNDateTimePicker (from `../node_modules/@react-native-community/datetimepicker`)"
   - RNGestureHandler (from `../node_modules/react-native-gesture-handler`)
   - RNI18n (from `../node_modules/react-native-i18n`)
+  - RNReactNativeModalPatch (from `../node_modules/react-native-modal-patch`)
   - RNReanimated (from `../node_modules/react-native-reanimated`)
   - RNScreens (from `../node_modules/react-native-screens`)
   - RNShare (from `../node_modules/react-native-share`)
@@ -468,6 +471,8 @@ EXTERNAL SOURCES:
     :path: "../node_modules/react-native-gesture-handler"
   RNI18n:
     :path: "../node_modules/react-native-i18n"
+  RNReactNativeModalPatch:
+    :path: "../node_modules/react-native-modal-patch"
   RNReanimated:
     :path: "../node_modules/react-native-reanimated"
   RNScreens:
@@ -527,6 +532,7 @@ SPEC CHECKSUMS:
   RNDateTimePicker: e9fcd5ecdc0c5b018871e0d178d6040dca11973c
   RNGestureHandler: 7a5833d0f788dbd107fbb913e09aa0c1ff333c39
   RNI18n: e2f7e76389fcc6e84f2c8733ea89b92502351fd8
+  RNReactNativeModalPatch: fc3c9f788dfa44e1914edd380ade65f3eb2236fd
   RNReanimated: dd8c286ab5dd4ba36d3a7fef8bff7e08711b5476
   RNScreens: 0e91da98ab26d5d04c7b59a9b6bd694124caf88c
   RNShare: 7fb06e9dc9dab68854eb99041aaca080ca3fde10

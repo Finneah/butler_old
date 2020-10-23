@@ -119,9 +119,10 @@ export default {
     // Card
     cardDefaultBg: '#fff',
     get cardBorderColor() {
-        return this.brandPrimary;
+        return this.brandSecondary;
     },
     cardBorderRadius: 25,
+    cardListItemBorderRadius: 2,
     cardItemPadding: platform === PLATFORM.IOS ? 10 : 12,
 
     // CheckBox
@@ -142,8 +143,9 @@ export default {
     brandPrimary: platform === PLATFORM.IOS ? '#333' : '#333',
     brandPrimaryLight: '#808080',
     brandPrimaryDark: '#000',
+    brandLightGrey: '#f3f3f3',
 
-    brandSecondary: '#66806D', //FFEBCD
+    brandSecondary: '#0F5B36', //FFEBCD
     brandSecondaryLight: '#A3CCAD',
     brandSecondaryDark: '#526657',
 
@@ -285,12 +287,19 @@ export default {
 
     // Segment
     segmentBackgroundColor: platform === PLATFORM.IOS ? '#F8F8F8' : '#3F51B5',
-    segmentActiveBackgroundColor:
-        platform === PLATFORM.IOS ? '#007aff' : '#fff',
-    segmentTextColor: platform === PLATFORM.IOS ? '#007aff' : '#fff',
+    get segmentActiveBackgroundColor() {
+        return this.brandSecondary;
+    },
+    get segmentTextColor() {
+        return this.brandSecondary;
+    },
     segmentActiveTextColor: platform === PLATFORM.IOS ? '#fff' : '#3F51B5',
-    segmentBorderColor: platform === PLATFORM.IOS ? '#007aff' : '#fff',
-    segmentBorderColorMain: platform === PLATFORM.IOS ? '#a7a6ab' : '#3F51B5',
+    get segmentBorderColor() {
+        return this.brandSecondary;
+    },
+    get segmentBorderColorMain() {
+        return this.brandSecondary;
+    },
 
     // Spinner
     get defaultSpinnerColor() {

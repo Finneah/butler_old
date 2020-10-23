@@ -8,6 +8,7 @@ import {
     Header,
     Icon,
     Left,
+    ListItem,
     Right,
     Text,
     Title
@@ -166,7 +167,7 @@ class OverviewScreen extends Component {
                     }
                 });
             }
-
+            console.log(sections, MainEntrys.data());
             this.setState({
                 isLoading: false,
                 sections: sections
@@ -343,89 +344,124 @@ class OverviewScreen extends Component {
                         index
                     })}
                     data={sections}
+                    initialNumToRender={
+                        this.state.sections &&
+                        this.state.sections[2] != undefined
+                            ? 3
+                            : this.state.sections.length
+                    }
                     // listKey={this.props.thisDate.getFullYear().toString()}
                     keyExtractor={(item, index) => index.toString()}
                     scrollEnabled={true}
                     renderItem={({item}) => (
-                        <Card>
-                            <CardItem header>
+                        <Card overviewCard>
+                            <CardItem header first>
                                 <Body>
-                                    <Title>{item.title}</Title>
+                                    <Title light>{item.title}</Title>
                                 </Body>
                             </CardItem>
                             <ProgressCircle
-                                style={{height: 120}}
+                                style={{
+                                    height: 120,
+                                    marginTop: 20,
+                                    marginBottom: 10
+                                }}
                                 progress={this._getProgressForItem(item)}
                                 strokeWidth={10}
                                 progressColor={GlobalColors.accentColor}
                             />
 
-                            <Table borderStyle={{borderWidth: 0}}>
-                                <TableWrapper style={styles.wrapper}>
-                                    <Col
-                                        data={[
-                                            strings('Incomings'),
-                                            strings('Outgoings'),
-                                            strings('Remaining')
-                                        ]}
-                                        style={styles.titleCol}
-                                        heightArr={[20, 20]}
-                                        textStyle={styles.titleText}
-                                    />
-                                    <Rows
-                                        data={[
-                                            [
-                                                item.calc.incoming
-                                                    ? item.calc.incoming.toString() +
-                                                      ' ' +
-                                                      strings('Currency')
-                                                    : ''
-                                            ],
-                                            [
-                                                item.calc.outgoing
-                                                    ? item.calc.outgoing.toString() +
-                                                      ' ' +
-                                                      strings('Currency')
-                                                    : ''
-                                            ],
-                                            [
-                                                item.calc.remaining
-                                                    ? item.calc.remaining.toString() +
-                                                      ' ' +
-                                                      strings('Currency')
-                                                    : ''
-                                            ]
-                                        ]}
-                                        flexArr={[1, 1]}
-                                        style={styles.row}
-                                        textStyle={styles.text}
-                                    />
-                                </TableWrapper>
-                            </Table>
-                            <CardItem footer>
-                                <Button
-                                    transparent
-                                    onPress={() => {
-                                        this.props.navigation.navigate(
-                                            'Details',
-                                            {
-                                                screen: 'MonthDetail',
-                                                params: {
-                                                    month: item,
-                                                    year: selectedYear
+                            <ListItem>
+                                <Body>
+                                    <Text>{strings('Incomings')}</Text>
+                                </Body>
+                                <Right>
+                                    <Text>
+                                        {item.calc.incoming
+                                            ? item.calc.incoming.toString() +
+                                              ' ' +
+                                              strings('Currency')
+                                            : ''}
+                                    </Text>
+                                </Right>
+                            </ListItem>
+                            <ListItem>
+                                <Body>
+                                    <Text>{strings('Outgoings')}</Text>
+                                </Body>
+                                <Right>
+                                    <Text>
+                                        {item.calc.outgoing
+                                            ? item.calc.outgoing.toString() +
+                                              ' ' +
+                                              strings('Currency')
+                                            : ''}
+                                    </Text>
+                                </Right>
+                            </ListItem>
+                            <ListItem>
+                                <Body>
+                                    <Text>{strings('Remaining')}</Text>
+                                </Body>
+                                <Right>
+                                    <Text>
+                                        {item.calc.remaining
+                                            ? item.calc.remaining.toString() +
+                                              ' ' +
+                                              strings('Currency')
+                                            : ''}
+                                    </Text>
+                                </Right>
+                            </ListItem>
+                            <CardItem footer last>
+                                <Left>
+                                    <Button
+                                        centered
+                                        primary
+                                        transparent
+                                        onPress={() => {
+                                            this.props.navigation.navigate(
+                                                'Details',
+                                                {
+                                                    screen: 'MonthDetail',
+                                                    params: {
+                                                        month: item,
+                                                        year: selectedYear
+                                                    }
                                                 }
-                                            }
-                                        );
-                                    }}
-                                >
-                                    <Text>{strings('Details')}</Text>
-                                </Button>
+                                            );
+                                        }}
+                                    >
+                                        <Text>{strings('More')}</Text>
+                                    </Button>
+                                </Left>
+                                <Right>
+                                    <Button
+                                        centered
+                                        primary
+                                        transparent
+                                        onPress={() => {
+                                            this.props.navigation.navigate(
+                                                'Details',
+                                                {
+                                                    screen: 'MonthDetail',
+                                                    params: {
+                                                        month: item,
+                                                        year: selectedYear
+                                                    }
+                                                }
+                                            );
+                                        }}
+                                    >
+                                        <Text>{strings('Edit')}</Text>
+                                    </Button>
+                                </Right>
                             </CardItem>
                         </Card>
                     )}
                     ListEmptyComponent={() => (
                         <Card>
-                            <CardItem>
+                            <CardItem firstlast>
                                 <Body>
                                     <Text>
                                         {

@@ -19,6 +19,7 @@ function Entrys(params) {
         </Stack.Navigator>
     );
 }
+
 function Details(params) {
     return (
         <Stack.Navigator headerMode="none">

@@ -144,7 +144,8 @@ export default (variables /* : * */ = variable) => {
                 borderBottomWidth: variables.borderWidth
             },
             borderBottomWidth: null,
-            paddingVertical: variables.cardItemPadding + 5
+            paddingVertical: variables.cardItemPadding + 5,
+            backgroundColor: variables.brandPrimary
         },
         '.footer': {
             'NativeBase.Text': {
@@ -158,7 +159,8 @@ export default (variables /* : * */ = variable) => {
                 },
                 borderTopWidth: variables.borderWidth
             },
-            borderBottomWidth: null
+            borderBottomWidth: null,
+            backgroundColor: variables.brandLightGrey
         },
         'NativeBase.Text': {
             '.note': {
@@ -180,16 +182,26 @@ export default (variables /* : * */ = variable) => {
         },
         '.first': {
             borderTopLeftRadius: variables.cardBorderRadius,
-            borderTopRightRadius: variables.cardBorderRadius
+            borderTopRightRadius: variables.cardBorderRadius,
+            borderBottomLeftRadius: variables.cardListItemBorderRadius,
+            borderBottomRightRadius: variables.cardListItemBorderRadius
         },
         '.last': {
+            borderTopLeftRadius: variables.cardListItemBorderRadius,
+            borderTopRightRadius: variables.cardListItemBorderRadius,
+            borderBottomLeftRadius: variables.cardBorderRadius,
+            borderBottomRightRadius: variables.cardBorderRadius
+        },
+        '.firstlast': {
+            borderTopLeftRadius: variables.cardBorderRadius,
+            borderTopRightRadius: variables.cardBorderRadius,
             borderBottomLeftRadius: variables.cardBorderRadius,
             borderBottomRightRadius: variables.cardBorderRadius
         },
         '.transparent': {backgroundColor: 'transparent'},
         flexDirection: 'row',
         alignItems: 'center',
-        borderRadius: variables.cardBorderRadius,
+
         padding: variables.cardItemPadding + 5,
         paddingVertical: variables.cardItemPadding,
         backgroundColor: variables.cardDefaultBg
