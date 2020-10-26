@@ -20,8 +20,11 @@ import {strings} from '../i18n';
 import GlobalColors from '../style/GlobalColors';
 
 import {ProgressChart} from 'react-native-chart-kit';
-import {Categories, Entrys, Intervals, MainEntrys} from '../database';
+import {Entrys} from '../database';
 import Queryable from 'vasern/vasern/src/core/vasern-queryable';
+
+import Error_Handler from '../Error_Handler';
+let error_handler = new Error_Handler();
 class ProgressChartExample extends React.PureComponent {
     render() {
         const data = {
@@ -62,7 +65,9 @@ class MonthDetailScreen extends Component {
             year: undefined
         };
     }
+
     componentDidMount() {
+        console.log('componentDidMount');
         this._setState();
         Entrys.onChange(() => {
             console.info('MonthDetailScreen Entrys changed');
@@ -71,54 +76,66 @@ class MonthDetailScreen extends Component {
     }
 
     _setState() {
-        var {params} = this.props.route;
-        let entryQueryObj = new Queryable(Entrys.data());
+        try {
+            console.log('_setState', this.props);
+            var {params} = this.props.route;
+            let entryQueryObj = new Queryable(Entrys.data());
 
-        if (params && params.month) {
-            this.setState({month: params.month});
-            var sections = [];
-            var incomingData = {
-                section: {title: strings('Incomings'), complete: 0},
-                data: []
-            };
-            var outgoingData = {
-                section: {title: strings('Outgoings'), complete: 0},
-                data: []
-            };
-            var data = entryQueryObj
-                .filter({
-                    month: params.month.monthIndex.toString(),
-                    year: params.year.toString()
-                })
-                .data();
-            for (let i = 0; i < data.length; i++) {
-                const element = data[i];
-                switch (element.categorie.typ) {
-                    case 'incoming':
-                        incomingData.data.push(element);
-                        incomingData.section.complete += parseFloat(
-                            element.mainEntry.amount
-                        );
+            if (params && params.month) {
+                this.setState({month: params.month});
+                var sections = [];
+                var incomingData = {
+                    section: {title: strings('Incomings'), complete: 0},
+                    data: []
+                };
+                var outgoingData = {
+                    section: {title: strings('Outgoings'), complete: 0},
+                    data: []
+                };
+                var data = entryQueryObj
 
-                        break;
-                    case 'outgoing':
-                        outgoingData.data.push(element);
-                        outgoingData.section.complete += parseFloat(
-                            element.mainEntry.amount
-                        );
-                        break;
-                    default:
-                        break;
+                    .filter({
+                        month: params.month.monthIndex.toString(),
+                        year: params.year.toString()
+                    })
+
+                    .data();
+
+                for (let i = 0; i < data.length; i++) {
+                    const element = data[i];
+                    switch (element.categorie.typ) {
+                        case 'incoming':
+                            incomingData.data.push(element);
+                            incomingData.section.complete += parseFloat(
+                                element.mainEntry.amount
+                            );
+
+                            break;
+                        case 'outgoing':
+                            outgoingData.data.push(element);
+                            outgoingData.section.complete += parseFloat(
+                                element.mainEntry.amount
+                            );
+                            break;
+                        default:
+                            break;
+                    }
                 }
+
+                this._sortData(outgoingData);
+                this._sortData(incomingData);
+
+                sections.push(incomingData);
+                sections.push(outgoingData);
+
+                this.setState({sections});
             }
 
-            sections.push(incomingData);
-            sections.push(outgoingData);
-            this.setState({sections});
-        }
-
-        if (params && params.year) {
-            this.setState({year: params.year});
+            if (params && params.year) {
+                this.setState({year: params.year});
+            }
+        } catch (error) {
+            error_handler._handleError('_setState', error);
         }
     }
 
@@ -140,6 +157,7 @@ class MonthDetailScreen extends Component {
                 month: month.monthIndex.toString(),
                 year: year.toString()
             })
+
             .data();
         for (let i = 0; i < data.length; i++) {
             const element = data[i];
@@ -162,9 +180,36 @@ class MonthDetailScreen extends Component {
             }
         }
 
+        this._sortData(outgoingData);
+        this._sortData(incomingData);
+
         sections.push(incomingData);
         sections.push(outgoingData);
         this.setState({sections});
+    }
+
+    _sortData(data) {
+        var d = [];
+        var sortedByAmount = data.data;
+        sortedByAmount.sort(function (a, b) {
+            if (
+                parseFloat(a.mainEntry.amount) < parseFloat(b.mainEntry.amount)
+            ) {
+                return -1;
+            } else if (
+                parseFloat(a.mainEntry.amount) > parseFloat(b.mainEntry.amount)
+            ) {
+                return 1;
+            }
+        });
+
+        sortedByAmount.forEach((element) => {
+            element.mainEntry.fixedCosts == true
+                ? d.unshift(element)
+                : d.push(element);
+        });
+
+        data.data = d;
     }
 
     render() {
@@ -198,7 +243,11 @@ class MonthDetailScreen extends Component {
                             onPress={() => {
                                 this.props.navigation.navigate('Entrys', {
                                     screen: 'CreateEditEntry',
-                                    params: {}
+                                    params: {
+                                        selectedMonth: this.state.month
+                                            .monthIndex,
+                                        selectedYear: this.state.year
+                                    }
                                 });
                             }}
                         >
@@ -234,12 +283,27 @@ class MonthDetailScreen extends Component {
 
                                 this.props.navigation.navigate('Entrys', {
                                     screen: 'CreateEditEntry',
-                                    params: {entry: item.mainEntry}
+                                    params: {
+                                        entry: item.mainEntry,
+                                        selectedMonth: this.state.month
+                                            .monthIndex,
+                                        selectedYear: this.state.year
+                                    }
                                 });
                             }}
                         >
                             <Left>
-                                <Icon name={item.categorie.icon}></Icon>
+                                <Icon
+                                    style={
+                                        item.mainEntry.fixedCosts
+                                            ? undefined
+                                            : {
+                                                  color:
+                                                      GlobalColors.accentColor
+                                              }
+                                    }
+                                    name={item.categorie.icon}
+                                ></Icon>
                             </Left>
                             <Body>
                                 <Text>{item.mainEntry.description}</Text>
@@ -268,26 +332,24 @@ class MonthDetailScreen extends Component {
                             </CardItem>
                         </Card>
                     )}
-                    ListFooterComponent={() => (
-                        <ListItem itemDivider>
-                            <Body>
-                                <Text style={{fontWeight: 'bold'}}>
-                                    {strings('Remaining')}
-                                </Text>
-                            </Body>
-                            <Right>
-                                <Text style={{fontWeight: 'bold'}}>
-                                    {sections
-                                        ? sections[0].section.complete -
-                                          sections[1].section.complete +
-                                          ' ' +
-                                          strings('Currency')
-                                        : ''}
-                                </Text>
-                            </Right>
-                        </ListItem>
-                    )}
                 />
+                <ListItem itemDivider>
+                    <Body>
+                        <Text style={{fontWeight: 'bold'}}>
+                            {strings('Remaining')}
+                        </Text>
+                    </Body>
+                    <Right>
+                        <Text style={{fontWeight: 'bold'}}>
+                            {sections
+                                ? sections[0].section.complete -
+                                  sections[1].section.complete +
+                                  ' ' +
+                                  strings('Currency')
+                                : ''}
+                        </Text>
+                    </Right>
+                </ListItem>
             </Container>
         );
     }

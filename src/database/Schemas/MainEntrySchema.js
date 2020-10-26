@@ -6,6 +6,7 @@ export class MainEntrySchema {
         interval: '#Intervals',
         description: 'string',
         periodFrom: '?datetime',
-        periodTill: '?datetime'
+        periodTill: '?datetime',
+        fixedCosts: 'boolean'
     };
 }

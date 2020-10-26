@@ -13,8 +13,7 @@ import {
     Right,
     Switch,
     Text,
-    Title,
-    Toast
+    Title
 } from 'native-base';
 
 import {Alert, FlatList, Platform} from 'react-native';
@@ -32,6 +31,7 @@ class CreateEditEntryScreen extends Component {
     constructor() {
         super();
         this.state = {
+            isTest: false,
             showTillDatePicker: false,
             showModalChooseUpdate: false,
             disabled: false,
@@ -42,7 +42,8 @@ class CreateEditEntryScreen extends Component {
             entry: {},
             options: [],
             updateMainEntryArray: [],
-            isTest: false
+            selectedMonth: undefined,
+            selectedYear: undefined
         };
     }
 
@@ -58,7 +59,32 @@ class CreateEditEntryScreen extends Component {
                 this._checkEntry();
             }
 
+            if (helper.isEmpty(params.entry)) {
+                var from = new Date();
+                from.setMonth(0);
+                from.setDate('01');
+                var entry = {
+                    periodFrom: from
+                };
+                if (params.selectedMonth && params.selectedYear) {
+                    entry = {
+                        periodFrom: new Date(
+                            params.selectedMonth + '.01.' + params.selectedYear
+                        )
+                    };
+
+                    this.setState({
+                        selectedMonth: params.selectedMonth,
+                        selectedYear: params.selectedYear
+                    });
+                }
+                this.setState({
+                    entry: entry
+                });
+            }
+
             var options = [
+                {title: strings('FixCosts')},
                 {
                     title: strings('Description'),
                     input: true,
@@ -80,7 +106,10 @@ class CreateEditEntryScreen extends Component {
                 {title: strings('Till')}
             ];
 
-            this.setState({options, intervals: Intervals.data()});
+            this.setState({
+                options,
+                intervals: Intervals.data()
+            });
         } catch (error) {
             error_handler._handleError('componentDidMount', error);
         }
@@ -160,7 +189,7 @@ class CreateEditEntryScreen extends Component {
             if (entry.id) {
                 await this._updateMainEntrysAndEntrys();
             } else {
-                await this._insertMainEntry((goBack = true));
+                await this._insertMainEntry(undefined, true);
             }
         } catch (error) {
             error_handler._handleError('_insertOrUpdateEntry', error);
@@ -177,16 +206,26 @@ class CreateEditEntryScreen extends Component {
                         categorie: mainEntry.categorie,
                         description: mainEntry.description,
                         interval: mainEntry.interval,
+                        fixedCosts: mainEntry.fixedCosts,
                         periodFrom: mainEntry.periodFrom,
                         periodTill: mainEntry.periodTill
                     },
                     true
                 );
-
+                console.info('updated MainEntry', newMainEntry);
                 await this._deleteEntrys(newMainEntry.id);
-
-                await this._createEntrys(newMainEntry, newMainEntry.interval);
+            } else {
+                console.info('updated MainEntry', {
+                    amount: mainEntry.amount,
+                    categorie: mainEntry.categorie,
+                    description: mainEntry.description,
+                    interval: mainEntry.interval,
+                    fixedCosts: mainEntry.fixedCosts,
+                    periodFrom: mainEntry.periodFrom,
+                    periodTill: mainEntry.periodTill
+                });
             }
+            await this._createEntrys(newMainEntry, newMainEntry.interval);
         } catch (error) {
             error_handler._handleError('_updateAllEntrys', error);
         }
@@ -202,31 +241,42 @@ class CreateEditEntryScreen extends Component {
                 categorie: entry.categorie,
                 interval: entry.interval,
                 description: entry.description,
+                fixedCosts: entry.fixedCosts,
                 periodFrom: entry.periodFrom,
-                periodTill: entry.periodTill ? entry.periodTill : ''
+                periodTill: entry.periodTill ? entry.periodTill : undefined
             };
 
-            if (typeof oldMainEntry.periodFrom == 'string') {
-                oldMainEntry.periodFrom = new Date(oldMainEntry.periodFrom);
-            }
-            if (typeof oldMainEntry.periodTill == 'string') {
-                oldMainEntry.periodTill = new Date(oldMainEntry.periodTill);
-            }
+            await this._checkPeriods(updatedMainEntry, oldMainEntry);
             var expression =
                 updatedMainEntry.periodFrom < oldMainEntry.periodFrom &&
                 updatedMainEntry.periodTill > oldMainEntry.periodTill;
+            console.log('expression', expression);
             var expression1 =
                 updatedMainEntry.periodFrom < oldMainEntry.periodFrom &&
                 updatedMainEntry.periodTill == oldMainEntry.periodTill;
-
+            console.log('expression1', expression1);
             var expression2 =
                 updatedMainEntry.periodFrom == oldMainEntry.periodFrom &&
                 updatedMainEntry.periodTill == oldMainEntry.periodTill;
+
+            console.log('expression2', expression2);
             var expression3 =
                 updatedMainEntry.periodFrom == oldMainEntry.periodFrom &&
                 updatedMainEntry.periodTill > oldMainEntry.periodTill;
+            console.log('expression3', expression3);
+            var expression4 =
+                updatedMainEntry.periodFrom == oldMainEntry.periodFrom &&
+                updatedMainEntry.periodTill == undefined &&
+                oldMainEntry.periodTill == undefined;
 
-            if (expression || expression1 || expression2 || expression3) {
+            console.log('expression4', expression4);
+            if (
+                expression ||
+                expression1 ||
+                expression2 ||
+                expression3 ||
+                expression4
+            ) {
                 // change all
 
                 this._updateAllEntrys(updatedMainEntry, oldMainEntry.id);
@@ -383,10 +433,44 @@ class CreateEditEntryScreen extends Component {
                 });
             } else {
                 console.log('_createUpdateEntryArray', 'oops');
+
                 console.log(updatedMainEntry, oldMainEntry);
             }
         } catch (error) {
             error_handler._handleError('_createUpdateEntryArray', error);
+        }
+    }
+
+    _checkPeriods(updatedMainEntry, oldMainEntry) {
+        /**
+         * @todo convert periods
+         */
+        if (typeof updatedMainEntry.periodTill == 'string') {
+            updatedMainEntry.periodTill = new Date(updatedMainEntry.periodTill);
+        }
+
+        // if (updatedMainEntry.periodTill == undefined) {
+        //     updatedMainEntry.periodTill = '';
+        // }
+
+        // if (oldMainEntry.periodTill == undefined) {
+        //     oldMainEntry.periodTill = '';
+        // }
+        if (
+            typeof oldMainEntry.periodFrom == 'string' &&
+            oldMainEntry.periodFrom != ''
+        ) {
+            oldMainEntry.periodFrom = new Date(oldMainEntry.periodFrom);
+        }
+        if (
+            typeof oldMainEntry.periodTill == 'string' &&
+            oldMainEntry.periodTill != ''
+        ) {
+            oldMainEntry.periodTill = new Date(oldMainEntry.periodTill);
+        }
+
+        if (typeof updatedMainEntry.periodFrom == 'string') {
+            updatedMainEntry.periodFrom = new Date(updatedMainEntry.periodFrom);
         }
     }
 
@@ -423,33 +507,53 @@ class CreateEditEntryScreen extends Component {
             if (!entry) {
                 entry = this.state.entry;
             }
-            if (entry.periodFrom && typeof entry.periodFrom == 'string') {
-                entry.periodFrom = new Date(entry.periodFrom);
+
+            if (entry.periodFrom) {
+                if (typeof entry.periodFrom == 'string') {
+                    entry.periodFrom = new Date(entry.periodFrom);
+                    entry.periodFrom = new Date(
+                        entry.periodFrom.toDateString()
+                    );
+                } else {
+                    entry.periodFrom = new Date(
+                        entry.periodFrom.toDateString()
+                    );
+                }
             }
-            if (entry.periodTill && typeof entry.periodTill == 'string') {
-                entry.periodTill = new Date(entry.periodTill);
+
+            if (entry.periodTill) {
+                if (typeof entry.periodTill == 'string') {
+                    entry.periodTill = new Date(entry.periodTill);
+                    entry.periodTill = new Date(
+                        entry.periodTill.toDateString()
+                    );
+                } else {
+                    entry.periodTill = new Date(
+                        entry.periodTill.toDateString()
+                    );
+                }
             }
-            entry.periodFrom = new Date(entry.periodFrom.toDateString());
-            entry.periodTill = new Date(entry.periodTill.toDateString());
 
             var mainEntry = {
                 amount: entry.amount,
                 categorie: entry.categorie,
                 interval: entry.interval,
                 description: entry.description,
+                fixedCosts: entry.fixedCosts ? entry.fixedCosts : false,
                 periodFrom: entry.periodFrom,
                 periodTill: entry.periodTill ? entry.periodTill : ''
             };
 
             var createdMainEntry = mainEntry;
+            console.info('create MainEntry', mainEntry);
             if (!this.state.isTest) {
                 createdMainEntry = await MainEntrys.insert(mainEntry)[0];
-                await this._createEntrys(
-                    createdMainEntry,
-                    mainEntry.interval,
-                    goBack
-                );
             }
+            await this._createEntrys(
+                createdMainEntry,
+                mainEntry.interval,
+                goBack
+            );
         } catch (error) {
             error_handler._handleError('_insertMainEntry', error);
         }
@@ -480,6 +584,33 @@ class CreateEditEntryScreen extends Component {
             });
         } catch (error) {
             error_handler._handleError('_deleteEntrys', error);
+        }
+    }
+
+    _deleteEntry() {
+        try {
+            var {entry, selectedMonth, selectedYear} = this.state;
+            let entryQueryObj = new Queryable(Entrys.data());
+            var entryToDelete = entryQueryObj
+                .filter({
+                    mainEntry_id: entry.id,
+                    month: selectedMonth.toString(),
+                    year: selectedYear.toString()
+                })
+                .data();
+            if (entryToDelete) {
+                Entrys.remove(
+                    {
+                        mainEntry_id: entry.id,
+                        month: selectedMonth.toString(),
+                        year: selectedYear.toString()
+                    },
+                    true
+                );
+            }
+            this.props.navigation.goBack();
+        } catch (error) {
+            error_handler._handleError('_deleteEntry', error);
         }
     }
 
@@ -532,14 +663,18 @@ class CreateEditEntryScreen extends Component {
             var periodTill =
                 mainEntry.periodTill && mainEntry.periodTill != ''
                     ? new Date(mainEntry.periodTill)
-                    : new Date(newDate.setMonth(newDate.getMonth() + 11));
+                    : new Date(
+                          newDate.setMonth(
+                              newDate.getMonth() + interval.key == 12 ? 12 : 11
+                          )
+                      );
 
             var entrys = getDates(
                 periodFrom,
                 periodTill,
                 parseInt(interval.key)
             );
-
+            console.info('create Entrys', entrys);
             if (!this.state.isTest) {
                 await Entrys.insert(entrys, true);
                 if (goBack) {
@@ -582,6 +717,28 @@ class CreateEditEntryScreen extends Component {
             const {entry} = this.state;
 
             switch (item.title) {
+                case strings('FixCosts'):
+                    return (
+                        <ListItem>
+                            <Body>
+                                <Text>{strings('FixCosts')}</Text>
+                            </Body>
+                            <Right>
+                                <Switch
+                                    value={entry.fixedCosts}
+                                    onValueChange={(val) => {
+                                        this.setState((prevState) => ({
+                                            entry: {
+                                                ...prevState.entry,
+                                                fixedCosts: val
+                                            }
+                                        }));
+                                    }}
+                                />
+                            </Right>
+                        </ListItem>
+                    );
+
                 case strings('Description'):
                     return (
                         <ListItem>
@@ -666,7 +823,9 @@ class CreateEditEntryScreen extends Component {
 
                             <Right>
                                 {entry.categorie ? (
-                                    <Text note>{entry.categorie.name}</Text>
+                                    <Text note>
+                                        {strings(entry.categorie.name)}
+                                    </Text>
                                 ) : null}
                                 <Icon name="chevron-forward" />
                             </Right>
@@ -677,7 +836,7 @@ class CreateEditEntryScreen extends Component {
 
                     var intervals = this.state.intervals;
                     intervals.forEach((interval) => {
-                        BUTTONS.push(interval.name);
+                        BUTTONS.push(strings(interval.name));
                     });
                     BUTTONS.push(strings('Cancel'));
 
@@ -712,7 +871,9 @@ class CreateEditEntryScreen extends Component {
 
                             <Right>
                                 {entry.interval ? (
-                                    <Text note>{entry.interval.name}</Text>
+                                    <Text note>
+                                        {strings(entry.interval.name)}
+                                    </Text>
                                 ) : null}
                                 <Icon name="chevron-forward" />
                             </Right>
@@ -727,13 +888,20 @@ class CreateEditEntryScreen extends Component {
                             <Body>
                                 <DateTimePicker
                                     style={{
-                                        width: 110
+                                        width: 120
                                     }}
                                     testID="dateTimePicker"
                                     locale={'de-DE'}
                                     value={
                                         entry.periodFrom
                                             ? new Date(entry.periodFrom)
+                                            : this.state.selectedMonth &&
+                                              this.state.selectedYear
+                                            ? new Date(
+                                                  this.state.selectedMonth +
+                                                      '.01.' +
+                                                      this.state.selectedYear
+                                              )
                                             : new Date()
                                     }
                                     mode={'date'}
@@ -772,7 +940,7 @@ class CreateEditEntryScreen extends Component {
                             <Body>
                                 {this.state.showTillDatePicker ? (
                                     <DateTimePicker
-                                        style={{width: 110}}
+                                        style={{width: 120}}
                                         testID="dateTimePicker"
                                         locale={'de-DE'}
                                         value={
@@ -898,10 +1066,7 @@ class CreateEditEntryScreen extends Component {
                                     {
                                         text: strings('DeleteEntry'),
                                         onPress: () => {
-                                            Toast.show({
-                                                text: strings('IcantDoThatYet'),
-                                                buttonText: strings('Ok')
-                                            });
+                                            this._deleteEntry();
                                         },
 
                                         style: 'default'

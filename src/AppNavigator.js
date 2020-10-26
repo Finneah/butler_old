@@ -33,7 +33,10 @@ class AppNavigator extends Component {
             <Stack.Navigator headerMode="none">
                 <Stack.Screen name="Overview" component={OverviewScreen} />
                 <Stack.Screen name="Entrys" component={Entrys} />
-                <Stack.Screen name="Details" component={Details} />
+                <Stack.Screen
+                    name="MonthDetail"
+                    component={MonthDetailScreen}
+                />
             </Stack.Navigator>
         );
     }

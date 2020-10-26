@@ -1,110 +1,113 @@
 [
     {
-        "name": "Haushalt",
+        "name": "Household",
         "icon": "home",
         "typ": "outgoing"
     },
     {
-        "name": "Lebensmittel",
+        "name": "Food",
         "icon": "pizza",
         "typ": "outgoing"
     },
 
     {
-        "name": "Reisen",
+        "name": "Travels",
         "icon": "earth",
         "typ": "outgoing"
     },
     {
-        "name": "Auto",
+        "name": "Car",
         "icon": "car-sport",
         "typ": "outgoing"
     },
     {
-        "name": "Unterhaltung",
+        "name": "Entertainment",
         "icon": "tv",
         "typ": "outgoing"
     },
     {
-        "name": "Bildung",
+        "name": "Education",
         "icon": "library",
         "typ": "outgoing"
     },
     {
-        "name": "Hobby",
+        "name": "Freetime",
         "icon": "game-controller",
         "typ": "outgoing"
     },
     {
-        "name": "Tiere",
+        "name": "Tickets",
+        "icon": "train",
+        "typ": "outgoing"
+    },
+
+    {
+        "name": "Pets",
         "icon": "paw",
         "typ": "outgoing"
     },
     {
-        "name": "Geschenke",
+        "name": "Gifts",
         "icon": "gift",
         "typ": "outgoing"
     },
     {
-        "name": "Geschenke",
+        "name": "Gifts",
         "icon": "gift",
-
         "typ": "incoming"
     },
     {
-        "name": "Arbeit",
+        "name": "Work",
         "icon": "business",
         "typ": "outgoing"
     },
     {
-        "name": "Familie",
+        "name": "Family_Friends",
         "icon": "people",
         "typ": "outgoing"
     },
     {
-        "name": "Gesundheit",
+        "name": "Healthcare",
         "icon": "medical",
         "typ": "outgoing"
     },
     {
-        "name": "Spenden",
+        "name": "Donations",
         "icon": "heart",
         "typ": "outgoing"
     },
     {
-        "name": "Spenden",
+        "name": "Donations",
         "icon": "heart",
-
         "typ": "incoming"
     },
     {
-        "name": "Sparen",
+        "name": "Saving",
         "icon": "trophy",
         "typ": "outgoing"
     },
     {
-        "name": "Rechnungen",
+        "name": "Bills",
         "icon": "cart",
         "typ": "outgoing"
     },
     {
-        "name": "Versicherung",
+        "name": "Insurance",
         "icon": "briefcase",
         "typ": "outgoing"
     },
     {
-        "name": "Sonstiges",
+        "name": "Others",
         "icon": "star",
-
         "typ": "incoming"
     },
     {
-        "name": "Sonstiges",
+        "name": "Others",
         "icon": "star",
         "typ": "outgoing"
     },
     {
-        "name": "Gehalt",
+        "name": "Salary",
         "icon": "cash",
         "typ": "incoming"
     }

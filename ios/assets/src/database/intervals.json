@@ -1,26 +1,26 @@
 [
     {
         "key": "0",
-        "name": "einmalig"
+        "name": "Single"
     },
     {
         "key": "1",
-        "name": "monatlich"
+        "name": "Monthly"
     },
     {
         "key": "2",
-        "name": "alle 2 Monate"
+        "name": "Every2Months"
     },
     {
         "key": "3",
-        "name": "alle 3 Monate"
+        "name": "Every3Months"
     },
     {
         "key": "6",
-        "name": "alle 6 Monate"
+        "name": "Every6Months"
     },
     {
         "key": "12",
-        "name": "jährlich"
+        "name": "Yearly"
     }
 ]

@@ -22,8 +22,7 @@ import {Queryable} from 'vasern/vasern/src/core';
 import {strings} from '../i18n';
 
 import {Categories} from '../database';
-import categoriesJSON from '../database/categories.json';
-const queryObj = new Queryable(Categories.data());
+
 class CategoriesScreen extends Component {
     constructor() {
         super();
@@ -43,6 +42,9 @@ class CategoriesScreen extends Component {
         var {categories} = this.state;
 
         if (categories) {
+            categories.sort((a, b) =>
+                strings(a.name) > strings(b.name) ? 1 : -1
+            );
             var data = categories.filter((a) => {
                 if (a.typ == typ) {
                     return a;
@@ -93,7 +95,9 @@ class CategoriesScreen extends Component {
                                             <Left>
                                                 <Icon name={item.icon}></Icon>
                                                 <Body>
-                                                    <Text>{item.name}</Text>
+                                                    <Text>
+                                                        {strings(item.name)}
+                                                    </Text>
                                                 </Body>
                                             </Left>
                                             <Right>
@@ -124,7 +128,9 @@ class CategoriesScreen extends Component {
                                             <Left>
                                                 <Icon name={item.icon}></Icon>
                                                 <Body>
-                                                    <Text>{item.name}</Text>
+                                                    <Text>
+                                                        {strings(item.name)}
+                                                    </Text>
                                                 </Body>
                                             </Left>
                                             <Right>

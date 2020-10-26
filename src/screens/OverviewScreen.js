@@ -33,6 +33,7 @@ import Helper from '../Helper';
 import {Table, TableWrapper, Col, Rows} from 'react-native-table-component';
 import GlobalColors from '../style/GlobalColors';
 import Error_Handler from '../Error_Handler';
+import {MainEntrySchema} from '../database/Schemas/MainEntrySchema';
 let helper = new Helper();
 let error_handler = new Error_Handler();
 class OverviewScreen extends Component {
@@ -53,6 +54,19 @@ class OverviewScreen extends Component {
         };
     }
     componentDidMount() {
+        MainEntrys.onLoaded(() => {
+            console.info('MainEntrys loaded');
+
+            var mainEntrySchema = new MainEntrySchema();
+
+            /**
+             * @todo TESTEN
+             */
+            if (MainEntrys.props.length != mainEntrySchema.props.length) {
+                console.log('OOO', mainEntrySchema.props);
+                MainEntrys.validateProps();
+            }
+        });
         Entrys.onLoaded(() => {
             console.info('Entrys loaded');
 
@@ -61,7 +75,6 @@ class OverviewScreen extends Component {
 
         Entrys.onChange(() => {
             console.info('Entrys changed');
-
             this._setState();
         });
     }
@@ -102,7 +115,11 @@ class OverviewScreen extends Component {
                             month: (date.getMonth() + 1).toString()
                         })
                         .data();
+
                     if (sectionEntrys) {
+                        sectionEntrys.incoming = 0;
+                        sectionEntrys.outgoing = 0;
+                        sectionEntrys.remaining = 0;
                         for (let i = 0; i < sectionEntrys.length; i++) {
                             const element = sectionEntrys[i];
 
@@ -116,6 +133,7 @@ class OverviewScreen extends Component {
                                 var interval = intervalQueryObj.get({
                                     id: mainEntry.interval_id
                                 });
+
                                 if (categorie) {
                                     switch (categorie.typ) {
                                         case 'incoming':
@@ -167,7 +185,7 @@ class OverviewScreen extends Component {
                     }
                 });
             }
-            console.log(sections, MainEntrys.data());
+
             this.setState({
                 isLoading: false,
                 sections: sections
@@ -339,8 +357,8 @@ class OverviewScreen extends Component {
                     }}
                     initialScrollIndex={this._getInitialScrollIndex()}
                     getItemLayout={(data, index) => ({
-                        length: 360,
-                        offset: 360 * index,
+                        length: 440,
+                        offset: 440 * index,
                         index
                     })}
                     data={sections}
@@ -356,9 +374,11 @@ class OverviewScreen extends Component {
                     renderItem={({item}) => (
                         <Card overviewCard>
                             <CardItem header first>
+                                <Left />
                                 <Body>
                                     <Title light>{item.title}</Title>
                                 </Body>
+                                <Right />
                             </CardItem>
                             <ProgressCircle
                                 style={{
@@ -377,11 +397,9 @@ class OverviewScreen extends Component {
                                 </Body>
                                 <Right>
                                     <Text>
-                                        {item.calc.incoming
-                                            ? item.calc.incoming.toString() +
-                                              ' ' +
-                                              strings('Currency')
-                                            : ''}
+                                        {item.calc.incoming.toString() +
+                                            ' ' +
+                                            strings('Currency')}
                                     </Text>
                                 </Right>
                             </ListItem>
@@ -391,11 +409,9 @@ class OverviewScreen extends Component {
                                 </Body>
                                 <Right>
                                     <Text>
-                                        {item.calc.outgoing
-                                            ? item.calc.outgoing.toString() +
-                                              ' ' +
-                                              strings('Currency')
-                                            : ''}
+                                        {item.calc.outgoing.toString() +
+                                            ' ' +
+                                            strings('Currency')}
                                     </Text>
                                 </Right>
                             </ListItem>
@@ -405,57 +421,31 @@ class OverviewScreen extends Component {
                                 </Body>
                                 <Right>
                                     <Text>
-                                        {item.calc.remaining
-                                            ? item.calc.remaining.toString() +
-                                              ' ' +
-                                              strings('Currency')
-                                            : ''}
+                                        {item.calc.remaining.toString() +
+                                            ' ' +
+                                            strings('Currency')}
                                     </Text>
                                 </Right>
                             </ListItem>
                             <CardItem footer last>
-                                <Left>
+                                <Body>
                                     <Button
-                                        centered
-                                        primary
+                                        secondary
+                                        full
                                         transparent
                                         onPress={() => {
                                             this.props.navigation.navigate(
-                                                'Details',
+                                                'MonthDetail',
                                                 {
-                                                    screen: 'MonthDetail',
-                                                    params: {
-                                                        month: item,
-                                                        year: selectedYear
-                                                    }
+                                                    month: item,
+                                                    year: selectedYear
                                                 }
                                             );
                                         }}
                                     >
                                         <Text>{strings('More')}</Text>
                                     </Button>
-                                </Left>
-                                <Right>
-                                    <Button
-                                        centered
-                                        primary
-                                        transparent
-                                        onPress={() => {
-                                            this.props.navigation.navigate(
-                                                'Details',
-                                                {
-                                                    screen: 'MonthDetail',
-                                                    params: {
-                                                        month: item,
-                                                        year: selectedYear
-                                                    }
-                                                }
-                                            );
-                                        }}
-                                    >
-                                        <Text>{strings('Edit')}</Text>
-                                    </Button>
-                                </Right>
+                                </Body>
                             </CardItem>
                         </Card>
                     )}
