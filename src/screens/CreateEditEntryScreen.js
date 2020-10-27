@@ -197,9 +197,10 @@ class CreateEditEntryScreen extends Component {
     }
 
     async _updateAllEntrys(mainEntry, id) {
+        console.log('_updateAllEntrys');
         try {
             if (!this.state.isTest) {
-                var newMainEntry = MainEntrys.update(
+                var newMainEntry = await MainEntrys.update(
                     {id: id},
                     {
                         amount: mainEntry.amount,
@@ -214,6 +215,7 @@ class CreateEditEntryScreen extends Component {
                 );
                 console.info('updated MainEntry', newMainEntry);
                 await this._deleteEntrys(newMainEntry.id);
+                await this._createEntrys(newMainEntry, newMainEntry.interval);
             } else {
                 console.info('updated MainEntry', {
                     amount: mainEntry.amount,
@@ -224,8 +226,8 @@ class CreateEditEntryScreen extends Component {
                     periodFrom: mainEntry.periodFrom,
                     periodTill: mainEntry.periodTill
                 });
+                await this._createEntrys(mainEntry, mainEntry.interval);
             }
-            await this._createEntrys(newMainEntry, newMainEntry.interval);
         } catch (error) {
             error_handler._handleError('_updateAllEntrys', error);
         }
@@ -243,40 +245,41 @@ class CreateEditEntryScreen extends Component {
                 description: entry.description,
                 fixedCosts: entry.fixedCosts,
                 periodFrom: entry.periodFrom,
-                periodTill: entry.periodTill ? entry.periodTill : undefined
+                periodTill: entry.periodTill ? entry.periodTill : ''
             };
+            updatedMainEntry.periodTill =
+                updatedMainEntry.periodTill == undefined
+                    ? ''
+                    : updatedMainEntry.periodTill;
+            oldMainEntry.periodTill =
+                oldMainEntry.periodTill == undefined
+                    ? ''
+                    : oldMainEntry.periodTill;
 
-            await this._checkPeriods(updatedMainEntry, oldMainEntry);
-            var expression =
-                updatedMainEntry.periodFrom < oldMainEntry.periodFrom &&
-                updatedMainEntry.periodTill > oldMainEntry.periodTill;
+            var {
+                updatedFrom,
+                updatedTill,
+                oldFrom,
+                oldTill
+            } = await this._checkPeriods(
+                updatedMainEntry.periodFrom,
+                updatedMainEntry.periodTill,
+                oldMainEntry.periodFrom,
+                oldMainEntry.periodTill
+            );
+            var expression = updatedFrom < oldFrom && updatedTill > oldTill;
             console.log('expression', expression);
-            var expression1 =
-                updatedMainEntry.periodFrom < oldMainEntry.periodFrom &&
-                updatedMainEntry.periodTill == oldMainEntry.periodTill;
+
+            var expression1 = updatedFrom < oldFrom && updatedTill == oldTill;
             console.log('expression1', expression1);
-            var expression2 =
-                updatedMainEntry.periodFrom == oldMainEntry.periodFrom &&
-                updatedMainEntry.periodTill == oldMainEntry.periodTill;
 
+            var expression2 = updatedFrom == oldFrom && updatedTill == oldTill;
             console.log('expression2', expression2);
-            var expression3 =
-                updatedMainEntry.periodFrom == oldMainEntry.periodFrom &&
-                updatedMainEntry.periodTill > oldMainEntry.periodTill;
-            console.log('expression3', expression3);
-            var expression4 =
-                updatedMainEntry.periodFrom == oldMainEntry.periodFrom &&
-                updatedMainEntry.periodTill == undefined &&
-                oldMainEntry.periodTill == undefined;
 
-            console.log('expression4', expression4);
-            if (
-                expression ||
-                expression1 ||
-                expression2 ||
-                expression3 ||
-                expression4
-            ) {
+            var expression3 = updatedFrom == oldFrom && updatedTill > oldTill;
+            console.log('expression3', expression3);
+
+            if (expression || expression1 || expression2 || expression3) {
                 // change all
 
                 this._updateAllEntrys(updatedMainEntry, oldMainEntry.id);
@@ -289,12 +292,59 @@ class CreateEditEntryScreen extends Component {
         }
     }
 
+    _checkPeriods(updatedFrom, updatedTill, oldFrom, oldTill) {
+        /**
+         * @todo convert periods
+         */
+
+        if (typeof updatedTill == 'string' && updatedTill != '') {
+            updatedTill = new Date(updatedTill).getTime();
+            console.log('updatedTill changed', updatedTill);
+        } else if (typeof updatedTill == 'object') {
+            updatedTill = updatedTill.getTime();
+            console.log('updatedTill changed 2', updatedTill);
+        }
+
+        if (typeof oldFrom == 'string' && oldFrom != '') {
+            oldFrom = new Date(oldFrom).getTime();
+            console.log('oldFrom changed', oldFrom);
+        }
+        if (typeof oldTill == 'string' && oldTill != '') {
+            oldTill = new Date(oldTill).getTime();
+            console.log('oldTill changed', oldTill);
+        }
+
+        if (typeof updatedFrom == 'string' && updatedFrom != '') {
+            updatedFrom = new Date(updatedFrom).getTime();
+            console.log('updatedFrom changed', updatedFrom);
+        } else if (typeof updatedFrom == 'object') {
+            updatedFrom = updatedFrom.getTime();
+            console.log('updatedFrom changed 2', updatedFrom);
+        }
+        console.log('result from');
+        console.log('updatedFrom', updatedFrom);
+
+        console.log('oldFrom', oldFrom);
+        console.log('result till');
+        console.log('updatedTill', updatedTill);
+        console.log('oldTill', oldTill);
+        return {updatedFrom, updatedTill, oldFrom, oldTill};
+    }
+
     _createUpdateEntryArray(updatedMainEntry, oldMainEntry) {
         try {
-            if (
-                updatedMainEntry.periodFrom > oldMainEntry.periodFrom &&
-                updatedMainEntry.periodTill < oldMainEntry.periodTill
-            ) {
+            var {
+                updatedFrom,
+                updatedTill,
+                oldFrom,
+                oldTill
+            } = this._checkPeriods(
+                updatedMainEntry.periodFrom,
+                updatedMainEntry.periodTill,
+                oldMainEntry.periodFrom,
+                oldMainEntry.periodTill
+            );
+            if (updatedFrom > oldFrom && updatedTill < oldTill) {
                 var updateMainEntryArray = [];
 
                 updateMainEntryArray.push({
@@ -340,10 +390,7 @@ class CreateEditEntryScreen extends Component {
                     updateMainEntryArray: updateMainEntryArray,
                     showModalChooseUpdate: true
                 });
-            } else if (
-                updatedMainEntry.periodFrom < oldMainEntry.periodFrom &&
-                updatedMainEntry.periodTill < oldMainEntry.periodTill
-            ) {
+            } else if (updatedFrom < oldFrom && updatedTill < oldTill) {
                 var updateMainEntryArray = [];
 
                 updateMainEntryArray.push({
@@ -370,10 +417,7 @@ class CreateEditEntryScreen extends Component {
                     updateMainEntryArray: updateMainEntryArray,
                     showModalChooseUpdate: true
                 });
-            } else if (
-                updatedMainEntry.periodFrom > oldMainEntry.periodFrom &&
-                updatedMainEntry.periodTill == oldMainEntry.periodTill
-            ) {
+            } else if (updatedFrom > oldFrom && updatedTill == oldTill) {
                 var updateMainEntryArray = [];
 
                 updateMainEntryArray.push({
@@ -401,10 +445,7 @@ class CreateEditEntryScreen extends Component {
                     updateMainEntryArray: updateMainEntryArray,
                     showModalChooseUpdate: true
                 });
-            } else if (
-                updatedMainEntry.periodFrom == oldMainEntry.periodFrom &&
-                updatedMainEntry.periodTill < oldMainEntry.periodTill
-            ) {
+            } else if (updatedFrom == oldFrom && updatedTill < oldTill) {
                 var updateMainEntryArray = [];
                 updateMainEntryArray.push({
                     ...updatedMainEntry,
@@ -433,44 +474,10 @@ class CreateEditEntryScreen extends Component {
                 });
             } else {
                 console.log('_createUpdateEntryArray', 'oops');
-
                 console.log(updatedMainEntry, oldMainEntry);
             }
         } catch (error) {
             error_handler._handleError('_createUpdateEntryArray', error);
-        }
-    }
-
-    _checkPeriods(updatedMainEntry, oldMainEntry) {
-        /**
-         * @todo convert periods
-         */
-        if (typeof updatedMainEntry.periodTill == 'string') {
-            updatedMainEntry.periodTill = new Date(updatedMainEntry.periodTill);
-        }
-
-        // if (updatedMainEntry.periodTill == undefined) {
-        //     updatedMainEntry.periodTill = '';
-        // }
-
-        // if (oldMainEntry.periodTill == undefined) {
-        //     oldMainEntry.periodTill = '';
-        // }
-        if (
-            typeof oldMainEntry.periodFrom == 'string' &&
-            oldMainEntry.periodFrom != ''
-        ) {
-            oldMainEntry.periodFrom = new Date(oldMainEntry.periodFrom);
-        }
-        if (
-            typeof oldMainEntry.periodTill == 'string' &&
-            oldMainEntry.periodTill != ''
-        ) {
-            oldMainEntry.periodTill = new Date(oldMainEntry.periodTill);
-        }
-
-        if (typeof updatedMainEntry.periodFrom == 'string') {
-            updatedMainEntry.periodFrom = new Date(updatedMainEntry.periodFrom);
         }
     }
 
@@ -533,6 +540,11 @@ class CreateEditEntryScreen extends Component {
                     );
                 }
             }
+            var periodTill = new Date(
+                new Date(entry.periodFrom).setFullYear(
+                    entry.periodFrom.getFullYear() + 1
+                )
+            );
 
             var mainEntry = {
                 amount: entry.amount,
@@ -541,7 +553,7 @@ class CreateEditEntryScreen extends Component {
                 description: entry.description,
                 fixedCosts: entry.fixedCosts ? entry.fixedCosts : false,
                 periodFrom: entry.periodFrom,
-                periodTill: entry.periodTill ? entry.periodTill : ''
+                periodTill: entry.periodTill ? entry.periodTill : periodTill
             };
 
             var createdMainEntry = mainEntry;
@@ -562,7 +574,7 @@ class CreateEditEntryScreen extends Component {
     async _deleteMainEntryAndEntrys() {
         try {
             var id = this.state.entry.id;
-            this._deleteEntrys(id);
+            await this._deleteEntrys(id);
 
             MainEntrys.remove({id: this.state.entry.id}, true);
             this.props.navigation.goBack();
@@ -571,10 +583,10 @@ class CreateEditEntryScreen extends Component {
         }
     }
 
-    _deleteEntrys(id) {
+    async _deleteEntrys(id) {
         try {
             let entryQueryObj = new Queryable(Entrys.data());
-            Entrys.perform(function (db) {
+            await Entrys.perform(function (db) {
                 entryQueryObj
                     .filter({mainEntry_id: id})
                     .data()
@@ -582,6 +594,7 @@ class CreateEditEntryScreen extends Component {
                         db.remove(item, true);
                     });
             });
+            console.log('deleted Entrys');
         } catch (error) {
             error_handler._handleError('_deleteEntrys', error);
         }
@@ -926,14 +939,7 @@ class CreateEditEntryScreen extends Component {
                     );
                 case strings('Till'):
                     return (
-                        <ListItem
-                            onPress={() => {
-                                this.setState({
-                                    showTillDatePicker: !this.state
-                                        .showTillDatePicker
-                                });
-                            }}
-                        >
+                        <ListItem>
                             <Left>
                                 <Text>{item.title}</Text>
                             </Left>
@@ -965,11 +971,20 @@ class CreateEditEntryScreen extends Component {
                             <Right>
                                 <Switch
                                     value={this.state.showTillDatePicker}
-                                    onValueChange={() => {
-                                        this.setState({
-                                            showTillDatePicker: !this.state
-                                                .showTillDatePicker
-                                        });
+                                    onValueChange={(val) => {
+                                        val
+                                            ? this.setState((prevState) => ({
+                                                  showTillDatePicker: !this
+                                                      .state.showTillDatePicker,
+                                                  entry: {
+                                                      ...prevState.entry,
+                                                      periodTill: new Date()
+                                                  }
+                                              }))
+                                            : this.setState({
+                                                  showTillDatePicker: !this
+                                                      .state.showTillDatePicker
+                                              });
                                     }}
                                 />
                             </Right>

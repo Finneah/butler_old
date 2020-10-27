@@ -24,6 +24,7 @@ import {Entrys} from '../database';
 import Queryable from 'vasern/vasern/src/core/vasern-queryable';
 
 import Error_Handler from '../Error_Handler';
+import {out} from 'react-native/Libraries/Animated/src/Easing';
 let error_handler = new Error_Handler();
 class ProgressChartExample extends React.PureComponent {
     render() {
@@ -77,58 +78,18 @@ class MonthDetailScreen extends Component {
 
     _setState() {
         try {
-            console.log('_setState', this.props);
             var {params} = this.props.route;
             let entryQueryObj = new Queryable(Entrys.data());
 
             if (params && params.month) {
                 this.setState({month: params.month});
-                var sections = [];
-                var incomingData = {
-                    section: {title: strings('Incomings'), complete: 0},
-                    data: []
-                };
-                var outgoingData = {
-                    section: {title: strings('Outgoings'), complete: 0},
-                    data: []
-                };
                 var data = entryQueryObj
-
                     .filter({
                         month: params.month.monthIndex.toString(),
                         year: params.year.toString()
                     })
-
                     .data();
-
-                for (let i = 0; i < data.length; i++) {
-                    const element = data[i];
-                    switch (element.categorie.typ) {
-                        case 'incoming':
-                            incomingData.data.push(element);
-                            incomingData.section.complete += parseFloat(
-                                element.mainEntry.amount
-                            );
-
-                            break;
-                        case 'outgoing':
-                            outgoingData.data.push(element);
-                            outgoingData.section.complete += parseFloat(
-                                element.mainEntry.amount
-                            );
-                            break;
-                        default:
-                            break;
-                    }
-                }
-
-                this._sortData(outgoingData);
-                this._sortData(incomingData);
-
-                sections.push(incomingData);
-                sections.push(outgoingData);
-
-                this.setState({sections});
+                this._addDataToIncomingAndOutgoingData(data);
             }
 
             if (params && params.year) {
@@ -142,7 +103,16 @@ class MonthDetailScreen extends Component {
     _updateState() {
         var {month, year} = this.state;
         let entryQueryObj = new Queryable(Entrys.data());
+        var data = entryQueryObj
+            .filter({
+                month: month.monthIndex.toString(),
+                year: year.toString()
+            })
+            .data();
+        this._addDataToIncomingAndOutgoingData(data);
+    }
 
+    _addDataToIncomingAndOutgoingData(data) {
         var sections = [];
         var incomingData = {
             section: {title: strings('Incomings'), complete: 0},
@@ -152,39 +122,32 @@ class MonthDetailScreen extends Component {
             section: {title: strings('Outgoings'), complete: 0},
             data: []
         };
-        var data = entryQueryObj
-            .filter({
-                month: month.monthIndex.toString(),
-                year: year.toString()
-            })
-
-            .data();
         for (let i = 0; i < data.length; i++) {
             const element = data[i];
             switch (element.categorie.typ) {
                 case 'incoming':
                     incomingData.data.push(element);
-                    incomingData.section.complete += parseFloat(
-                        element.mainEntry.amount
-                    );
+                    var amount = element.mainEntry.amount;
+                    amount.replace(',', '.');
+                    incomingData.section.complete += parseFloat(amount);
 
                     break;
                 case 'outgoing':
                     outgoingData.data.push(element);
-                    outgoingData.section.complete += parseFloat(
-                        element.mainEntry.amount
-                    );
+                    var amount = element.mainEntry.amount;
+                    amount = amount.replace(',', '.');
+                    outgoingData.section.complete += parseFloat(amount);
                     break;
                 default:
                     break;
             }
         }
-
         this._sortData(outgoingData);
         this._sortData(incomingData);
 
         sections.push(incomingData);
         sections.push(outgoingData);
+
         this.setState({sections});
     }
 
@@ -204,7 +167,8 @@ class MonthDetailScreen extends Component {
         });
 
         sortedByAmount.forEach((element) => {
-            element.mainEntry.fixedCosts == true
+            element.mainEntry.fixedCosts == true ||
+            element.mainEntry.fixedCosts == 'true'
                 ? d.unshift(element)
                 : d.push(element);
         });
@@ -295,7 +259,8 @@ class MonthDetailScreen extends Component {
                             <Left>
                                 <Icon
                                     style={
-                                        item.mainEntry.fixedCosts
+                                        item.mainEntry.fixedCosts == true ||
+                                        item.mainEntry.fixedCosts == 'true'
                                             ? undefined
                                             : {
                                                   color:
@@ -341,17 +306,30 @@ class MonthDetailScreen extends Component {
                     </Body>
                     <Right>
                         <Text style={{fontWeight: 'bold'}}>
-                            {sections
-                                ? sections[0].section.complete -
-                                  sections[1].section.complete +
-                                  ' ' +
-                                  strings('Currency')
-                                : ''}
+                            {this._getRemainingText()}
                         </Text>
                     </Right>
                 </ListItem>
             </Container>
         );
+    }
+
+    _getRemainingText() {
+        const {sections} = this.state;
+        if (sections) {
+            var remaining =
+                sections[0].section.complete - sections[1].section.complete;
+
+            remaining = remaining.toString().replace('.', ',');
+            console.log(
+                '_getRemainingText',
+                sections[0].section.complete,
+                sections[1].section.complete,
+                remaining
+            );
+            return remaining + ' ' + strings('Currency');
+        }
+        return '';
     }
 }
 export default MonthDetailScreen;

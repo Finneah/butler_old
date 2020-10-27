@@ -121,7 +121,9 @@ class ChooseUpdateModal extends Component {
                                         <Text>{strings('Categorie')}</Text>
                                     </Body>
                                     <Right>
-                                        <Text>{item.categorie.name}</Text>
+                                        <Text>
+                                            {strings(item.categorie.name)}
+                                        </Text>
                                     </Right>
                                 </ListItem>
                                 <ListItem>
@@ -129,7 +131,9 @@ class ChooseUpdateModal extends Component {
                                         <Text>{strings('Interval')}</Text>
                                     </Body>
                                     <Right>
-                                        <Text>{item.interval.name}</Text>
+                                        <Text>
+                                            {strings(item.interval.name)}
+                                        </Text>
                                     </Right>
                                 </ListItem>
 
