@@ -154,25 +154,38 @@ class MonthDetailScreen extends Component {
     _sortData(data) {
         var d = [];
         var sortedByAmount = data.data;
-        sortedByAmount.sort(function (a, b) {
-            if (
-                parseFloat(a.mainEntry.amount) < parseFloat(b.mainEntry.amount)
-            ) {
-                return -1;
-            } else if (
-                parseFloat(a.mainEntry.amount) > parseFloat(b.mainEntry.amount)
-            ) {
-                return 1;
-            }
-        });
+        var fixed = [];
+        var notFixed = [];
 
-        sortedByAmount.forEach((element) => {
+        data.data.forEach((element) => {
             element.mainEntry.fixedCosts == true ||
             element.mainEntry.fixedCosts == 'true'
-                ? d.unshift(element)
-                : d.push(element);
+                ? fixed.push(element)
+                : notFixed.push(element);
+        });
+        fixed.sort(function (a, b) {
+            if (
+                parseFloat(a.mainEntry.amount) > parseFloat(b.mainEntry.amount)
+            ) {
+                return -1;
+            }
+            return 1;
+        });
+        notFixed.sort(function (a, b) {
+            if (
+                parseFloat(a.mainEntry.amount) > parseFloat(b.mainEntry.amount)
+            ) {
+                return -1;
+            }
+            return 1;
         });
 
+        notFixed.forEach((element) => {
+            d.push(element);
+        });
+        fixed.forEach((element) => {
+            d.push(element);
+        });
         data.data = d;
     }
 
