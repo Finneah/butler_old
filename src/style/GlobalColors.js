@@ -11,7 +11,7 @@ const GlobalColors = {
     mainColorDark: '#000',
     grey: '#808080',
     accentColor: '#0F5B36', //FFEBCD
-    accentColorLight: '#0f4336',
+    accentColorLight: 'rgba(15,91,54,0.50)',
     accentColorDark: '#526657',
     warning: 'rgba(173,38,47,1)',
     warningLight: 'rgba(231,76,60,0.57)',

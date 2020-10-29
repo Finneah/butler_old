@@ -14,6 +14,9 @@ export default (variables /* : * */ = variable) => {
 
         '.warning': {
             color: variables.brandWarning
+        },
+        '.light': {
+            color: variables.brandLight
         }
     };
 

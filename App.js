@@ -9,6 +9,7 @@ import {NavigationContainer} from '@react-navigation/native';
 import AppNavigator from './src/AppNavigator';
 import {ActivityIndicator} from 'react-native';
 import {Categories, Intervals} from './src/database';
+import {SafeAreaProvider} from 'react-native-safe-area-context';
 class App extends Component {
     constructor() {
         super();
@@ -27,16 +28,18 @@ class App extends Component {
     render() {
         return (
             <StyleProvider style={getTheme(platform)}>
-                <Root>
-                    {this.state.intervalsLoaded &&
-                    this.state.categoriesLoaded ? (
-                        <NavigationContainer>
-                            <AppNavigator />
-                        </NavigationContainer>
-                    ) : (
-                        <ActivityIndicator />
-                    )}
-                </Root>
+                <SafeAreaProvider>
+                    <Root>
+                        {this.state.intervalsLoaded &&
+                        this.state.categoriesLoaded ? (
+                            <NavigationContainer>
+                                <AppNavigator />
+                            </NavigationContainer>
+                        ) : (
+                            <ActivityIndicator />
+                        )}
+                    </Root>
+                </SafeAreaProvider>
             </StyleProvider>
         );
     }

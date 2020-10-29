@@ -22,7 +22,10 @@ export const currentLocale = I18n.currentLocale();
 export function strings(name, params = {}) {
     try {
         if (name) {
-            var key = I18n.t(name, params);
+            var key = I18n.t(
+                name.charAt(0).toLowerCase() + name.slice(1),
+                params
+            );
 
             // If key is missing its easy to see in console
             if (key.indexOf('[missing') != -1) {

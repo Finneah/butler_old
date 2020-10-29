@@ -69,166 +69,171 @@ class ChooseUpdateModal extends Component {
                 onDismiss={() => this.props.toggleShowChooseUpdateModal(false)} // <-- This gets called all the time
             >
                 <Container>
-                    <FlatList
-                        data={updateMainEntryArray}
-                        ListHeaderComponent={() => (
-                            <Card>
-                                <CardItem firstlast>
-                                    <Text>
-                                        {
-                                            'Was soll mit den bisheringen Einträgen passieren? Ich kann sie löschen oder behalten.'
-                                        }
-                                    </Text>
-                                </CardItem>
-                            </Card>
-                        )}
-                        renderItem={({item, index}) => (
-                            <Card transparent>
-                                <CardItem
-                                    header
-                                    first
-                                    style={{
-                                        backgroundColor: this._getBackgroundColorForItem(
-                                            item
-                                        )
-                                    }}
-                                >
-                                    <Body>
-                                        <Title
-                                            light
-                                            style={{
-                                                textAlign: 'center'
-                                            }}
-                                        >
-                                            {this._getItemTitle(item)}
-                                        </Title>
-                                    </Body>
-                                </CardItem>
-                                <ListItem>
-                                    <Body>
-                                        <Text>{item.description}</Text>
-                                    </Body>
-                                    <Right>
+                    <SafeAreaView style={{flex: 1}}>
+                        <FlatList
+                            data={updateMainEntryArray}
+                            ListHeaderComponent={() => (
+                                <Card>
+                                    <CardItem firstlast>
                                         <Text>
-                                            {item.amount +
-                                                ' ' +
-                                                strings('Currency')}
+                                            {
+                                                'Was soll mit den bisheringen Einträgen passieren? Ich kann sie löschen oder behalten.'
+                                            }
                                         </Text>
-                                    </Right>
-                                </ListItem>
-                                <ListItem>
-                                    <Body>
-                                        <Text>{strings('Categorie')}</Text>
-                                    </Body>
-                                    <Right>
-                                        <Text>
-                                            {strings(item.categorie.name)}
-                                        </Text>
-                                    </Right>
-                                </ListItem>
-                                <ListItem>
-                                    <Body>
-                                        <Text>{strings('Interval')}</Text>
-                                    </Body>
-                                    <Right>
-                                        <Text>
-                                            {strings(item.interval.name)}
-                                        </Text>
-                                    </Right>
-                                </ListItem>
-
-                                {item.deletable ? (
-                                    <CardItem
-                                        footer
-                                        last
-                                        style={{
-                                            backgroundColor:
-                                                GlobalColors.lightGrey
-                                        }}
-                                    >
-                                        <Left>
-                                            <Button
-                                                primary
-                                                transparent
-                                                iconLeft
-                                                active={item.deleteIsActive}
-                                                onPress={() => {
-                                                    item.deleteIsActive = true;
-                                                    item.takeIsActive = false;
-                                                    this.props.onSetData(
-                                                        updateMainEntryArray
-                                                    );
-                                                }}
-                                            >
-                                                <Icon
-                                                    warning
-                                                    style={{
-                                                        color:
-                                                            GlobalColors.warning
-                                                    }}
-                                                    name={
-                                                        item.deleteIsActive
-                                                            ? 'radio-button-on'
-                                                            : 'radio-button-off'
-                                                    }
-                                                ></Icon>
-                                                <Text>{strings('Delete')}</Text>
-                                            </Button>
-                                        </Left>
-
-                                        <Right>
-                                            <Button
-                                                primary
-                                                transparent
-                                                active={item.takeIsActive}
-                                                iconRight
-                                                onPress={() => {
-                                                    item.deleteIsActive = false;
-                                                    item.takeIsActive = true;
-                                                    this.props.onSetData(
-                                                        updateMainEntryArray
-                                                    );
-                                                }}
-                                            >
-                                                <Text>{strings('Keep')}</Text>
-                                                <Icon
-                                                    style={{
-                                                        color:
-                                                            GlobalColors.accentColor
-                                                    }}
-                                                    success
-                                                    name={
-                                                        item.takeIsActive
-                                                            ? 'radio-button-on'
-                                                            : 'radio-button-off'
-                                                    }
-                                                ></Icon>
-                                            </Button>
-                                        </Right>
                                     </CardItem>
-                                ) : (
+                                </Card>
+                            )}
+                            renderItem={({item, index}) => (
+                                <Card transparent>
                                     <CardItem
-                                        footer
-                                        last
+                                        header
+                                        first
                                         style={{
-                                            backgroundColor:
-                                                GlobalColors.lightGrey
+                                            backgroundColor: this._getBackgroundColorForItem(
+                                                item
+                                            )
                                         }}
                                     >
                                         <Body>
-                                            <Text>
-                                                {
-                                                    'Diesen Zeitraum werde ich eintragen'
-                                                }
-                                            </Text>
+                                            <Title
+                                                light
+                                                style={{
+                                                    textAlign: 'center'
+                                                }}
+                                            >
+                                                {this._getItemTitle(item)}
+                                            </Title>
                                         </Body>
                                     </CardItem>
-                                )}
-                            </Card>
-                        )}
-                        keyExtractor={(item, index) => index.toString()}
-                    />
-                    <SafeAreaView>
+                                    <ListItem>
+                                        <Body>
+                                            <Text>{item.description}</Text>
+                                        </Body>
+                                        <Right>
+                                            <Text>
+                                                {item.amount +
+                                                    ' ' +
+                                                    strings('Currency')}
+                                            </Text>
+                                        </Right>
+                                    </ListItem>
+                                    <ListItem>
+                                        <Body>
+                                            <Text>{strings('Categorie')}</Text>
+                                        </Body>
+                                        <Right>
+                                            <Text>
+                                                {strings(item.categorie.name)}
+                                            </Text>
+                                        </Right>
+                                    </ListItem>
+                                    <ListItem>
+                                        <Body>
+                                            <Text>{strings('Interval')}</Text>
+                                        </Body>
+                                        <Right>
+                                            <Text>
+                                                {strings(item.interval.name)}
+                                            </Text>
+                                        </Right>
+                                    </ListItem>
+
+                                    {item.deletable ? (
+                                        <CardItem
+                                            footer
+                                            last
+                                            style={{
+                                                backgroundColor:
+                                                    GlobalColors.lightGrey
+                                            }}
+                                        >
+                                            <Left>
+                                                <Button
+                                                    primary
+                                                    transparent
+                                                    iconLeft
+                                                    active={item.deleteIsActive}
+                                                    onPress={() => {
+                                                        item.deleteIsActive = true;
+                                                        item.takeIsActive = false;
+                                                        this.props.onSetData(
+                                                            updateMainEntryArray
+                                                        );
+                                                    }}
+                                                >
+                                                    <Icon
+                                                        warning
+                                                        style={{
+                                                            color:
+                                                                GlobalColors.warning
+                                                        }}
+                                                        name={
+                                                            item.deleteIsActive
+                                                                ? 'radio-button-on'
+                                                                : 'radio-button-off'
+                                                        }
+                                                    ></Icon>
+                                                    <Text>
+                                                        {strings('Delete')}
+                                                    </Text>
+                                                </Button>
+                                            </Left>
+
+                                            <Right>
+                                                <Button
+                                                    primary
+                                                    transparent
+                                                    active={item.takeIsActive}
+                                                    iconRight
+                                                    onPress={() => {
+                                                        item.deleteIsActive = false;
+                                                        item.takeIsActive = true;
+                                                        this.props.onSetData(
+                                                            updateMainEntryArray
+                                                        );
+                                                    }}
+                                                >
+                                                    <Text>
+                                                        {strings('Keep')}
+                                                    </Text>
+                                                    <Icon
+                                                        style={{
+                                                            color:
+                                                                GlobalColors.accentColor
+                                                        }}
+                                                        success
+                                                        name={
+                                                            item.takeIsActive
+                                                                ? 'radio-button-on'
+                                                                : 'radio-button-off'
+                                                        }
+                                                    ></Icon>
+                                                </Button>
+                                            </Right>
+                                        </CardItem>
+                                    ) : (
+                                        <CardItem
+                                            footer
+                                            last
+                                            style={{
+                                                backgroundColor:
+                                                    GlobalColors.lightGrey
+                                            }}
+                                        >
+                                            <Body>
+                                                <Text>
+                                                    {
+                                                        'Diesen Zeitraum werde ich eintragen'
+                                                    }
+                                                </Text>
+                                            </Body>
+                                        </CardItem>
+                                    )}
+                                </Card>
+                            )}
+                            keyExtractor={(item, index) => index.toString()}
+                        />
+
                         <Button
                             rounded
                             centered
