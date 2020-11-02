@@ -25,6 +25,8 @@ import {Intervals, Entrys, MainEntrys} from '../database';
 import Queryable from 'vasern/vasern/src/core/vasern-queryable';
 import Error_Handler from '../Error_Handler';
 import ChooseUpdateModal from '../components/ChooseUpdateModal';
+import {EntryModel} from '../database/Models/EntryModel';
+let entryModel = new EntryModel();
 let helper = new Helper();
 let error_handler = new Error_Handler();
 class CreateEditEntryScreen extends Component {
@@ -52,6 +54,7 @@ class CreateEditEntryScreen extends Component {
             var {params} = this.props.route;
 
             if (params && params.entry) {
+                console.log(entryModel.props, params.entry);
                 this.setState({entry: params.entry});
                 if (params.entry.periodTill) {
                     this.setState({showTillDatePicker: true});
@@ -102,8 +105,8 @@ class CreateEditEntryScreen extends Component {
                     nav: 'Categories'
                 },
                 {title: strings('Interval')},
-                {title: strings('From')},
-                {title: strings('Till')}
+                {title: strings('periodFrom')},
+                {title: strings('periodTill')}
             ];
 
             this.setState({
@@ -217,7 +220,7 @@ class CreateEditEntryScreen extends Component {
                 await this._deleteEntrys(newMainEntry.id);
                 await this._createEntrys(newMainEntry, newMainEntry.interval);
             } else {
-                console.info('updated MainEntry', {
+                console.info(' isTest updated MainEntry', {
                     amount: mainEntry.amount,
                     categorie: mainEntry.categorie,
                     description: mainEntry.description,
@@ -559,7 +562,10 @@ class CreateEditEntryScreen extends Component {
             var createdMainEntry = mainEntry;
             console.info('create MainEntry', mainEntry);
             if (!this.state.isTest) {
+                console.info('create MainEntry', mainEntry);
                 createdMainEntry = await MainEntrys.insert(mainEntry)[0];
+            } else {
+                console.info('isTest create MainEntry', mainEntry);
             }
             await this._createEntrys(
                 createdMainEntry,
@@ -687,12 +693,15 @@ class CreateEditEntryScreen extends Component {
                 periodTill,
                 parseInt(interval.key)
             );
-            console.info('create Entrys', entrys);
+
             if (!this.state.isTest) {
+                console.info('create Entrys', entrys);
                 await Entrys.insert(entrys, true);
                 if (goBack) {
                     this.props.navigation.goBack();
                 }
+            } else {
+                console.info('isTest create Entrys', entrys);
             }
         } catch (error) {
             error_handler._handleError('_createEntrys', error);
@@ -892,7 +901,7 @@ class CreateEditEntryScreen extends Component {
                             </Right>
                         </ListItem>
                     );
-                case strings('From'):
+                case strings('periodFrom'):
                     return (
                         <ListItem>
                             <Left>
@@ -937,7 +946,7 @@ class CreateEditEntryScreen extends Component {
                             </Right>
                         </ListItem>
                     );
-                case strings('Till'):
+                case strings('periodTill'):
                     return (
                         <ListItem>
                             <Left>

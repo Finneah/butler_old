@@ -1,12 +1,13 @@
 export class MainEntrySchema {
     name = 'MainEntrys';
     props = {
+        fixedCosts: 'boolean',
+        description: 'string',
         amount: 'string',
         categorie: '#Categories',
         interval: '#Intervals',
-        description: 'string',
         periodFrom: '?datetime',
         periodTill: '?datetime',
-        fixedCosts: 'boolean'
+        badge: '?string'
     };
 }

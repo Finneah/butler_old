@@ -3,6 +3,10 @@ import intervalJSON from './intervals.json';
 import categoriesJSON from './categories.json';
 import Error_Handler from '../Error_Handler';
 import Queryable from 'vasern/vasern/src/core/vasern-queryable';
+import {MainEntrySchema} from './Schemas/MainEntrySchema';
+import {IntervalSchema} from './Schemas/IntervalSchema';
+import {CategorieSchema} from './Schemas/CategorieSchema';
+import {EntrySchema} from './Schemas/EntrySchema';
 const {Entrys, MainEntrys, Categories, Intervals} = VasernDB;
 let error_handler = new Error_Handler();
 
@@ -102,4 +106,9 @@ Categories.onLoaded(() => {
 });
 
 export default VasernDB;
+Intervals.validateProps(Object.keys(new IntervalSchema().props));
+Categories.validateProps(Object.keys(new CategorieSchema().props));
+MainEntrys.validateProps(Object.keys(new MainEntrySchema().props));
+Entrys.validateProps(Object.keys(new EntrySchema().props));
+
 export {Entrys, MainEntrys, Categories, Intervals};

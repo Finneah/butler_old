@@ -19,21 +19,30 @@ import {
     Alert,
     FlatList,
     Pressable,
+    SafeAreaView,
     StyleSheet,
     View
 } from 'react-native';
 
 import ButlerIcon from '../components/Icons/ButlerIcon';
 import {ProgressCircle} from 'react-native-svg-charts';
-import {Queryable} from 'vasern/vasern/src/core';
+
 import * as moment from 'moment';
 import {strings} from '../i18n';
-import {Categories, Entrys, Intervals, MainEntrys} from '../database';
+import {Entrys, MainEntrys} from '../database';
 import Helper from '../Helper';
-import {Table, TableWrapper, Col, Rows} from 'react-native-table-component';
+
 import GlobalColors from '../style/GlobalColors';
 import Error_Handler from '../Error_Handler';
-import {MainEntrySchema} from '../database/Schemas/MainEntrySchema';
+import {EntryModel} from '../database/Models/EntryModel';
+import {MainEntryModel} from '../database/Models/MainEntryModel';
+import {CategorieModel} from '../database/Models/CategorieModel';
+import {IntervalModel} from '../database/Models/IntervalModel';
+
+let entryModel = new EntryModel();
+let mainEntryModel = new MainEntryModel();
+let categorieModel = new CategorieModel();
+let intervalModel = new IntervalModel();
 let helper = new Helper();
 let error_handler = new Error_Handler();
 class OverviewScreen extends Component {
@@ -56,20 +65,9 @@ class OverviewScreen extends Component {
     componentDidMount() {
         MainEntrys.onLoaded(() => {
             console.info('MainEntrys loaded');
-
-            var mainEntrySchema = new MainEntrySchema();
-
-            /**
-             * @todo TESTEN
-             */
-            if (MainEntrys.props.length != mainEntrySchema.props.length) {
-                console.log('OOO', mainEntrySchema.props);
-                MainEntrys.validateProps();
-            }
         });
         Entrys.onLoaded(() => {
             console.info('Entrys loaded');
-
             this._setState();
         });
 
@@ -83,21 +81,12 @@ class OverviewScreen extends Component {
             this._setState();
             console.info('here');
         }
-        // if (prevState.sections != this.state.sections) {
-        //     if (this.state.selectedYear == this.state.currentYear) {
-        //         this.scrollToIndex();
-        //     }
-        // }
     }
 
     _setState() {
         try {
             var {selectedYear} = this.state;
             var sections = [];
-            let entryQueryObj = new Queryable(Entrys.data());
-            let mainEntryQueryObj = new Queryable(MainEntrys.data());
-            let categorieQueryObj = new Queryable(Categories.data());
-            let intervalQueryObj = new Queryable(Intervals.data());
 
             var dateArray = helper._getDates(
                 new Date('01/01/' + selectedYear),
@@ -109,12 +98,10 @@ class OverviewScreen extends Component {
                 dateArray.forEach((date) => {
                     var m = moment.months('de');
 
-                    var sectionEntrys = entryQueryObj
-                        .filter({
-                            year: selectedYear.toString(),
-                            month: (date.getMonth() + 1).toString()
-                        })
-                        .data();
+                    var sectionEntrys = entryModel.getEntrysForYearAndMonth(
+                        selectedYear.toString(),
+                        (date.getMonth() + 1).toString()
+                    );
 
                     if (sectionEntrys) {
                         sectionEntrys.incoming = 0;
@@ -123,16 +110,17 @@ class OverviewScreen extends Component {
                         for (let i = 0; i < sectionEntrys.length; i++) {
                             const element = sectionEntrys[i];
 
-                            var mainEntry = mainEntryQueryObj.get({
-                                id: element.mainEntry_id
-                            });
+                            var mainEntry = mainEntryModel.getMainEntryById(
+                                element.mainEntry_id
+                            );
                             if (mainEntry) {
-                                var categorie = categorieQueryObj.get({
-                                    id: mainEntry.categorie_id
-                                });
-                                var interval = intervalQueryObj.get({
-                                    id: mainEntry.interval_id
-                                });
+                                var categorie = categorieModel.getCategorieById(
+                                    mainEntry.categorie_id
+                                );
+
+                                var interval = intervalModel.getIntervalById(
+                                    mainEntry.interval_id
+                                );
 
                                 if (categorie) {
                                     switch (categorie.typ) {
@@ -317,152 +305,170 @@ class OverviewScreen extends Component {
                         </Button>
                     </Right>
                 </Header>
-                {this.state.isLoading ? <ActivityIndicator /> : null}
 
-                <View
-                    style={{
-                        flexDirection: 'row',
-                        justifyContent: 'space-between',
-                        padding: 15
-                    }}
-                >
-                    <Button
-                        iconLeft
-                        transparent
-                        onPress={() => {
-                            this.setState({selectedYear: selectedYear - 1});
+                <SafeAreaView style={{flex: 1}}>
+                    {this.state.isLoading ? <ActivityIndicator /> : null}
+                    <View
+                        style={{
+                            flexDirection: 'row',
+                            justifyContent: 'space-between',
+                            padding: 15
                         }}
                     >
-                        <Icon name="arrow-back" />
-                        <Text>{this.state.selectedYear - 1}</Text>
-                    </Button>
-                    <Button onPress={() => this.scrollToTop()}>
-                        <Text>{this.state.selectedYear}</Text>
-                    </Button>
-                    <Button
-                        iconRight
-                        transparent
-                        onPress={() => {
-                            this.setState({selectedYear: selectedYear + 1});
+                        <Button
+                            iconLeft
+                            transparent
+                            onPress={() => {
+                                this.setState({selectedYear: selectedYear - 1});
+                            }}
+                        >
+                            <Icon name="arrow-back" />
+                            <Text>{this.state.selectedYear - 1}</Text>
+                        </Button>
+                        <Button onPress={() => this.scrollToTop()}>
+                            <Text>{this.state.selectedYear}</Text>
+                        </Button>
+                        <Button
+                            iconRight
+                            transparent
+                            onPress={() => {
+                                this.setState({selectedYear: selectedYear + 1});
+                            }}
+                        >
+                            <Text>{this.state.selectedYear + 1}</Text>
+                            <Icon name="arrow-forward" />
+                        </Button>
+                    </View>
+
+                    <FlatList
+                        ref={(ref) => {
+                            this.thisYearFlatListRef = ref;
                         }}
-                    >
-                        <Text>{this.state.selectedYear + 1}</Text>
-                        <Icon name="arrow-forward" />
-                    </Button>
-                </View>
+                        initialScrollIndex={this._getInitialScrollIndex()}
+                        getItemLayout={(data, index) => ({
+                            length: 440,
+                            offset: 440 * index,
+                            index
+                        })}
+                        data={sections}
+                        initialNumToRender={
+                            this.state.sections &&
+                            this.state.sections[2] != undefined
+                                ? 3
+                                : this.state.sections.length
+                        }
+                        // listKey={this.props.thisDate.getFullYear().toString()}
+                        keyExtractor={(item, index) => index.toString()}
+                        scrollEnabled={true}
+                        renderItem={({item}) => (
+                            <Card overviewCard>
+                                <CardItem header first>
+                                    <Left></Left>
+                                    <Body>
+                                        <Title light>{item.title}</Title>
+                                    </Body>
+                                    <Right></Right>
+                                </CardItem>
+                                <ProgressCircle
+                                    style={{
+                                        height: 120,
+                                        marginTop: 20,
+                                        marginBottom: 10
+                                    }}
+                                    progress={this._getProgressForItem(item)}
+                                    strokeWidth={10}
+                                    progressColor={GlobalColors.accentColor}
+                                />
 
-                <FlatList
-                    ref={(ref) => {
-                        this.thisYearFlatListRef = ref;
-                    }}
-                    initialScrollIndex={this._getInitialScrollIndex()}
-                    getItemLayout={(data, index) => ({
-                        length: 440,
-                        offset: 440 * index,
-                        index
-                    })}
-                    data={sections}
-                    initialNumToRender={
-                        this.state.sections &&
-                        this.state.sections[2] != undefined
-                            ? 3
-                            : this.state.sections.length
-                    }
-                    // listKey={this.props.thisDate.getFullYear().toString()}
-                    keyExtractor={(item, index) => index.toString()}
-                    scrollEnabled={true}
-                    renderItem={({item}) => (
-                        <Card overviewCard>
-                            <CardItem header first>
-                                <Left />
-                                <Body>
-                                    <Title light>{item.title}</Title>
-                                </Body>
-                                <Right />
-                            </CardItem>
-                            <ProgressCircle
-                                style={{
-                                    height: 120,
-                                    marginTop: 20,
-                                    marginBottom: 10
-                                }}
-                                progress={this._getProgressForItem(item)}
-                                strokeWidth={10}
-                                progressColor={GlobalColors.accentColor}
-                            />
-
-                            <ListItem>
-                                <Body>
-                                    <Text>{strings('Incomings')}</Text>
-                                </Body>
-                                <Right>
-                                    <Text>
-                                        {item.calc.incoming.toString() +
-                                            ' ' +
-                                            strings('Currency')}
-                                    </Text>
-                                </Right>
-                            </ListItem>
-                            <ListItem>
-                                <Body>
-                                    <Text>{strings('Outgoings')}</Text>
-                                </Body>
-                                <Right>
-                                    <Text>
-                                        {item.calc.outgoing.toString() +
-                                            ' ' +
-                                            strings('Currency')}
-                                    </Text>
-                                </Right>
-                            </ListItem>
-                            <ListItem>
-                                <Body>
-                                    <Text>{strings('Remaining')}</Text>
-                                </Body>
-                                <Right>
-                                    <Text>
-                                        {item.calc.remaining.toString() +
-                                            ' ' +
-                                            strings('Currency')}
-                                    </Text>
-                                </Right>
-                            </ListItem>
-                            <CardItem footer last>
-                                <Body>
-                                    <Button
-                                        secondary
-                                        full
-                                        transparent
-                                        onPress={() => {
-                                            this.props.navigation.navigate(
-                                                'MonthDetail',
-                                                {
-                                                    month: item,
-                                                    year: selectedYear
-                                                }
-                                            );
-                                        }}
-                                    >
-                                        <Text>{strings('More')}</Text>
-                                    </Button>
-                                </Body>
-                            </CardItem>
-                        </Card>
-                    )}
-                    ListEmptyComponent={() => (
-                        <Card>
-                            <CardItem firstlast>
-                                <Body>
-                                    <Text>
-                                        {
-                                            'Es sind noch keine Einträge vorhanden'
-                                        }
-                                    </Text>
-                                </Body>
-                            </CardItem>
-                        </Card>
-                    )}
-                />
+                                <ListItem>
+                                    <Body>
+                                        <Text>{strings('Incomings')}</Text>
+                                    </Body>
+                                    <Right>
+                                        <Text>
+                                            {item.calc.incoming.toString() +
+                                                ' ' +
+                                                strings('Currency')}
+                                        </Text>
+                                    </Right>
+                                </ListItem>
+                                <ListItem>
+                                    <Body>
+                                        <Text>{strings('Outgoings')}</Text>
+                                    </Body>
+                                    <Right>
+                                        <Text>
+                                            {item.calc.outgoing.toString() +
+                                                ' ' +
+                                                strings('Currency')}
+                                        </Text>
+                                    </Right>
+                                </ListItem>
+                                <ListItem>
+                                    <Body>
+                                        <Text>{strings('Remaining')}</Text>
+                                    </Body>
+                                    <Right>
+                                        <Text>
+                                            {item.calc.remaining.toString() +
+                                                ' ' +
+                                                strings('Currency')}
+                                        </Text>
+                                    </Right>
+                                </ListItem>
+                                <CardItem footer last>
+                                    <Left>
+                                        <Button
+                                            secondary
+                                            transparent
+                                            iconLeft
+                                            onPress={() => {}}
+                                        >
+                                            <Icon name="chevron-down"></Icon>
+                                            <Text>{strings('More')}</Text>
+                                        </Button>
+                                    </Left>
+                                    <Body></Body>
+                                    <Right>
+                                        <Button
+                                            primary
+                                            transparent
+                                            iconRight
+                                            onPress={() => {
+                                                this.props.navigation.navigate(
+                                                    'Details',
+                                                    {
+                                                        screen: 'MonthDetail',
+                                                        params: {
+                                                            month: item,
+                                                            year: selectedYear
+                                                        }
+                                                    }
+                                                );
+                                            }}
+                                        >
+                                            <Text>{'Edit'}</Text>
+                                            <Icon name="chevron-forward"></Icon>
+                                        </Button>
+                                    </Right>
+                                </CardItem>
+                            </Card>
+                        )}
+                        ListEmptyComponent={() => (
+                            <Card>
+                                <CardItem firstlast>
+                                    <Body>
+                                        <Text>
+                                            {
+                                                'Es sind noch keine Einträge vorhanden'
+                                            }
+                                        </Text>
+                                    </Body>
+                                </CardItem>
+                            </Card>
+                        )}
+                    />
+                </SafeAreaView>
             </Container>
         );
     }
