@@ -21,47 +21,16 @@ import {Dimensions, SectionList, SafeAreaView, StyleSheet} from 'react-native';
 
 import {strings} from '../i18n';
 
-import {ProgressChart} from 'react-native-chart-kit';
+import {ProgressChart, PieChart} from 'react-native-chart-kit';
 import {Entrys} from '../database';
-import Queryable from 'vasern/vasern/src/core/vasern-queryable';
 
 import Error_Handler from '../Error_Handler';
 
 import GlobalColors from '../style/GlobalColors';
+import {EntryModel} from '../database/Models/EntryModel';
 
+let entryModel = new EntryModel();
 let error_handler = new Error_Handler();
-class ProgressChartExample extends React.PureComponent {
-    render() {
-        const data = {
-            labels: ['Swim', 'Bike', 'Run'], // optional
-            data: [0.4, 0.6, 0.8]
-        };
-        const chartConfig = {
-            backgroundGradientFrom: '#f8f8f8',
-            backgroundGradientFromOpacity: 0,
-            backgroundGradientTo: '#333',
-            backgroundGradientToOpacity: 0.5,
-            color: (opacity = 1) =>
-                `rgba(${Math.floor(Math.random() * 255)}, ${Math.floor(
-                    Math.random() * 255
-                )}, ${Math.floor(Math.random() * 255)}, ${opacity})`,
-            strokeWidth: 2, // optional, default 3
-            barPercentage: 0.5,
-            useShadowColorFromDataset: false // optional
-        };
-        return (
-            <ProgressChart
-                data={data}
-                width={Dimensions.get('screen').width}
-                height={220}
-                strokeWidth={16}
-                radius={32}
-                chartConfig={chartConfig}
-                hideLegend={false}
-            />
-        );
-    }
-}
 
 class MonthDetailScreen extends Component {
     constructor() {
@@ -71,51 +40,6 @@ class MonthDetailScreen extends Component {
             year: undefined
         };
     }
-    // static navigationOptions = ({navigation}) => {
-    //     console.log('navigationOptions');
-    //     const {params = {}} = navigation.state;
-    //     return {
-    //         header: ({navigation}) => {
-    //             return (
-    //                 <Header>
-    //                     <Left>
-    //                         <Button
-    //                             primary
-    //                             transparent
-    //                             onPress={() => {
-    //                                 navigation.goBack();
-    //                             }}
-    //                         >
-    //                             <Icon name="chevron-back" />
-    //                         </Button>
-    //                     </Left>
-    //                     <Body>
-    //                         <Text>
-    //                             {this.state.month
-    //                                 ? this.state.month.title +
-    //                                   ' ' +
-    //                                   this.state.year
-    //                                 : strings('Month')}
-    //                         </Text>
-    //                     </Body>
-    //                     <Right>
-    //                         <Button
-    //                             primary
-    //                             transparent
-    //                             onPress={() => {
-    //                                 try {
-    //                                     params.handlePress(params);
-    //                                 } catch (error) {}
-    //                             }}
-    //                         >
-    //                             <Icon name="add"></Icon>
-    //                         </Button>
-    //                     </Right>
-    //                 </Header>
-    //             );
-    //         }
-    //     };
-    // };
 
     componentDidMount() {
         this._setState();
@@ -147,16 +71,15 @@ class MonthDetailScreen extends Component {
     _setState() {
         try {
             var {params} = this.props.route;
-            let entryQueryObj = new Queryable(Entrys.data());
 
             if (params && params.month) {
                 this.setState({month: params.month});
-                var data = entryQueryObj
-                    .filter({
-                        month: params.month.monthIndex.toString(),
-                        year: params.year.toString()
-                    })
-                    .data();
+
+                var data = entryModel.filterEntryBy({
+                    month: params.month.monthIndex.toString(),
+                    year: params.year.toString()
+                });
+
                 this._addDataToIncomingAndOutgoingData(data);
             }
 
@@ -170,13 +93,12 @@ class MonthDetailScreen extends Component {
 
     _updateState() {
         var {month, year} = this.state;
-        let entryQueryObj = new Queryable(Entrys.data());
-        var data = entryQueryObj
-            .filter({
-                month: month.monthIndex.toString(),
-                year: year.toString()
-            })
-            .data();
+
+        var data = entryModel.filterEntryBy({
+            month: month.monthIndex.toString(),
+            year: year.toString()
+        });
+
         this._addDataToIncomingAndOutgoingData(data);
     }
 
@@ -239,6 +161,7 @@ class MonthDetailScreen extends Component {
         var d = [];
         var sortedByAmount = data.data;
         sortedByAmount.sort(function (a, b) {
+            console.log(a, b);
             if (
                 parseFloat(a.mainEntry.amount) > parseFloat(b.mainEntry.amount)
             ) {
@@ -249,13 +172,6 @@ class MonthDetailScreen extends Component {
                 return 1;
             }
         });
-
-        // sortedByAmount.forEach((element) => {
-        //     element.mainEntry.fixedCosts == true ||
-        //     element.mainEntry.fixedCosts == 'true'
-        //         ? d.push(element)
-        //         : d.unshift(element);
-        // });
 
         data.data = sortedByAmount;
     }
@@ -305,8 +221,6 @@ class MonthDetailScreen extends Component {
                     </Right>
                 </Header>
 
-                {/* <ProgressChartExample progressData={sections} /> */}
-
                 <SafeAreaView style={{flex: 1}}>
                     <SectionList
                         renderSectionHeader={({section: {section}}) => (
@@ -332,11 +246,13 @@ class MonthDetailScreen extends Component {
                             <ListItem
                                 style={{
                                     marginLeft: 0,
-                                    backgroundColor:
-                                        !item.mainEntry.fixedCosts &&
-                                        item.interval.key != '0'
-                                            ? GlobalColors.accentColorLight
-                                            : undefined
+                                    backgroundColor: item.mainEntry.badge
+                                        ? GlobalColors[item.mainEntry.badge]
+                                        : undefined,
+                                    borderTopRightRadius: 15,
+
+                                    borderBottomRightRadius: 15,
+                                    marginRight: 10
                                 }}
                                 icon
                                 onPress={() => {
@@ -354,8 +270,32 @@ class MonthDetailScreen extends Component {
                                     });
                                 }}
                             >
-                                <Left>
-                                    <Icon name={item.categorie.icon}></Icon>
+                                <Left
+                                    style={{
+                                        marginLeft: 0,
+                                        marginRight: 5,
+                                        backgroundColor:
+                                            item.mainEntry.fixedCosts ==
+                                                'true' ||
+                                            item.mainEntry.fixedCosts == true
+                                                ? GlobalColors.mainColor
+                                                : undefined,
+                                        borderTopRightRadius: 15,
+                                        borderBottomRightRadius: 15
+                                    }}
+                                >
+                                    <Icon
+                                        style={{
+                                            color:
+                                                item.mainEntry.fixedCosts ==
+                                                    'true' ||
+                                                item.mainEntry.fixedCosts ==
+                                                    true
+                                                    ? GlobalColors.light
+                                                    : undefined
+                                        }}
+                                        name={item.categorie.icon}
+                                    ></Icon>
                                 </Left>
                                 <Body>
                                     <Text>{item.mainEntry.description}</Text>

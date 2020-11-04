@@ -10,13 +10,9 @@ export class EntryModel {
         return props;
     }
 
-    getEntrysForYearAndMonth = (year, month) => {
+    filterEntryBy = (filterObject) => {
         let entryQueryObj = new Queryable(Entrys.data());
-        return entryQueryObj
-            .filter({
-                year: year.toString(),
-                month: month.toString()
-            })
-            .data();
+
+        return entryQueryObj.filter(filterObject).data();
     };
 }

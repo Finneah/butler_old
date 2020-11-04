@@ -15,4 +15,18 @@ export class CategorieModel {
             id: id
         });
     };
+
+    getCategorieByName = (name) => {
+        let categorieQueryObj = new Queryable(Categories.data());
+        return categorieQueryObj.get({
+            name: name
+        });
+    };
+    getCategorieByNameAndTyp = (name, typ) => {
+        let categorieQueryObj = new Queryable(Categories.data());
+        return categorieQueryObj.get({
+            name: name,
+            typ: typ
+        });
+    };
 }

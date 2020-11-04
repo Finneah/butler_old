@@ -14,4 +14,11 @@ export class IntervalModel {
             id: id
         });
     };
+
+    getIntervalByKey = (key) => {
+        let intervalQueryObj = new Queryable(Intervals.data());
+        return intervalQueryObj.get({
+            key: key
+        });
+    };
 }

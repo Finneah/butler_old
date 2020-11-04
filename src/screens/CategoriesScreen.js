@@ -16,11 +16,7 @@ import {
 } from 'native-base';
 
 import {FlatList, Pressable} from 'react-native';
-
-import {Queryable} from 'vasern/vasern/src/core';
-
 import {strings} from '../i18n';
-
 import {Categories} from '../database';
 
 class CategoriesScreen extends Component {

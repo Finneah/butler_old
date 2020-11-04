@@ -1,13 +1,16 @@
-import VasernDB from './db';
-import intervalJSON from './intervals.json';
 import categoriesJSON from './categories.json';
+import VasernDB from './db';
 import Error_Handler from '../Error_Handler';
-import Queryable from 'vasern/vasern/src/core/vasern-queryable';
-import {MainEntrySchema} from './Schemas/MainEntrySchema';
-import {IntervalSchema} from './Schemas/IntervalSchema';
+import intervalJSON from './intervals.json';
+import {CategorieModel} from './Models/CategorieModel';
 import {CategorieSchema} from './Schemas/CategorieSchema';
 import {EntrySchema} from './Schemas/EntrySchema';
+import {IntervalSchema} from './Schemas/IntervalSchema';
+import {MainEntrySchema} from './Schemas/MainEntrySchema';
+
 const {Entrys, MainEntrys, Categories, Intervals} = VasernDB;
+let categorieModel = new CategorieModel();
+
 let error_handler = new Error_Handler();
 
 function _createIntervalsIfNotExist() {
@@ -55,10 +58,9 @@ function _createCategoriesIfNotExist() {
 }
 
 function _createMissingCategories() {
-    let categorieQueryObj = new Queryable(Categories.data());
     for (let i = 0; i < categoriesJSON.length; i++) {
         const element = categoriesJSON[i];
-        var categorie = categorieQueryObj.get({name: element.name});
+        var categorie = categorieModel.getCategorieByName(element.name);
         if (!categorie) {
             Categories.insert(element, true);
         }

@@ -76,6 +76,7 @@ class OverviewScreen extends Component {
             this._setState();
         });
     }
+
     componentDidUpdate(prevProps, prevState) {
         if (prevState.selectedYear != this.state.selectedYear) {
             this._setState();
@@ -98,10 +99,11 @@ class OverviewScreen extends Component {
                 dateArray.forEach((date) => {
                     var m = moment.months('de');
 
-                    var sectionEntrys = entryModel.getEntrysForYearAndMonth(
-                        selectedYear.toString(),
-                        (date.getMonth() + 1).toString()
-                    );
+                    var sectionEntrys = entryModel.filterEntryBy({
+                        year: selectedYear.toString(),
+                        month: (date.getMonth() + 1).toString()
+                    });
+                    console.log(sectionEntrys);
 
                     if (sectionEntrys) {
                         sectionEntrys.incoming = 0;
