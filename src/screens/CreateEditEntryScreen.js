@@ -2,6 +2,8 @@ import React, {Component} from 'react';
 import {
     Body,
     Button,
+    Card,
+    CardItem,
     Container,
     Header,
     Icon,
@@ -65,7 +67,6 @@ class CreateEditEntryScreen extends Component {
             var {params} = this.props.route;
 
             if (params && params.entry) {
-                console.log(entryModel.props, params.entry);
                 this.setState({entry: params.entry});
                 if (params.entry.periodTill) {
                     this.setState({showTillDatePicker: true});
@@ -101,7 +102,11 @@ class CreateEditEntryScreen extends Component {
 
             this.setState({
                 options,
-                intervals: Intervals.data()
+                intervals: Intervals.data(),
+                isLastMonth:
+                    params && params.isLastMonth != undefined
+                        ? params.isLastMonth
+                        : false
             });
         } catch (error) {
             error_handler._handleError('componentDidMount', error);
@@ -208,35 +213,27 @@ class CreateEditEntryScreen extends Component {
 
         if (typeof updatedTill == 'string' && updatedTill != '') {
             updatedTill = new Date(updatedTill).getTime();
-            console.log('updatedTill changed', updatedTill);
         } else if (typeof updatedTill == 'object') {
             updatedTill = updatedTill.getTime();
-            console.log('updatedTill changed 2', updatedTill);
         }
 
         if (typeof oldFrom == 'string' && oldFrom != '') {
             oldFrom = new Date(oldFrom).getTime();
-            console.log('oldFrom changed', oldFrom);
+        } else if (typeof oldFrom == 'object') {
+            oldFrom = new Date(oldFrom).getTime();
         }
         if (typeof oldTill == 'string' && oldTill != '') {
             oldTill = new Date(oldTill).getTime();
-            console.log('oldTill changed', oldTill);
+        } else if (typeof oldTill == 'object') {
+            oldTill = new Date(oldTill).getTime();
         }
 
         if (typeof updatedFrom == 'string' && updatedFrom != '') {
             updatedFrom = new Date(updatedFrom).getTime();
-            console.log('updatedFrom changed', updatedFrom);
         } else if (typeof updatedFrom == 'object') {
             updatedFrom = updatedFrom.getTime();
-            console.log('updatedFrom changed 2', updatedFrom);
         }
-        console.log('result from');
-        console.log('updatedFrom', updatedFrom);
 
-        console.log('oldFrom', oldFrom);
-        console.log('result till');
-        console.log('updatedTill', updatedTill);
-        console.log('oldTill', oldTill);
         return {updatedFrom, updatedTill, oldFrom, oldTill};
     }
 
@@ -279,7 +276,7 @@ class CreateEditEntryScreen extends Component {
     }
 
     async _updateAllEntrys(mainEntry, id) {
-        console.log('_updateAllEntrys');
+        console.info('_updateAllEntrys');
         try {
             if (!this.state.isTest) {
                 var newMainEntry = await MainEntrys.update(
@@ -289,7 +286,8 @@ class CreateEditEntryScreen extends Component {
                         categorie: mainEntry.categorie,
                         description: mainEntry.description,
                         interval: mainEntry.interval,
-                        fixedCosts: mainEntry.fixedCosts,
+                        fixedCosts:
+                            mainEntry.fixedCosts == 'true' ? 'true' : 'false',
                         periodFrom: mainEntry.periodFrom,
                         periodTill: mainEntry.periodTill,
                         badge: mainEntry.badge ? mainEntry.badge : ''
@@ -306,7 +304,8 @@ class CreateEditEntryScreen extends Component {
                     categorie: mainEntry.categorie,
                     description: mainEntry.description,
                     interval: mainEntry.interval,
-                    fixedCosts: mainEntry.fixedCosts,
+                    fixedCosts:
+                        mainEntry.fixedCosts == 'true' ? 'true' : 'false',
                     periodFrom: mainEntry.periodFrom,
                     periodTill: mainEntry.periodTill,
                     badge: mainEntry.badge ? mainEntry.badge : ''
@@ -328,7 +327,7 @@ class CreateEditEntryScreen extends Component {
                 categorie: entry.categorie,
                 interval: entry.interval,
                 description: entry.description,
-                fixedCosts: entry.fixedCosts,
+                fixedCosts: entry.fixedCosts == true ? 'true' : 'false',
                 periodFrom: entry.periodFrom,
                 periodTill: entry.periodTill ? entry.periodTill : '',
                 badge: entry.badge ? entry.badge : ''
@@ -354,24 +353,23 @@ class CreateEditEntryScreen extends Component {
                 oldMainEntry.periodTill
             );
             var expression = updatedFrom < oldFrom && updatedTill > oldTill;
-            console.log('expression', expression);
 
             var expression1 = updatedFrom < oldFrom && updatedTill == oldTill;
-            console.log('expression1', expression1);
 
             var expression2 = updatedFrom == oldFrom && updatedTill == oldTill;
-            console.log('expression2', expression2);
 
             var expression3 = updatedFrom == oldFrom && updatedTill > oldTill;
-            console.log('expression3', expression3);
 
             if (expression || expression1 || expression2 || expression3) {
                 // change all
 
-                this._updateAllEntrys(updatedMainEntry, oldMainEntry.id);
+                await this._updateAllEntrys(updatedMainEntry, oldMainEntry.id);
                 this.props.navigation.goBack();
             } else {
-                this._createUpdateEntryArray(updatedMainEntry, oldMainEntry);
+                await this._createUpdateEntryArray(
+                    updatedMainEntry,
+                    oldMainEntry
+                );
             }
         } catch (error) {
             error_handler._handleError('_updateMainEntrysAndEntrys', error);
@@ -520,7 +518,7 @@ class CreateEditEntryScreen extends Component {
                     showModalChooseUpdate: true
                 });
             } else {
-                console.log('_createUpdateEntryArray', 'oops');
+                console.log('_createUpdateEntryArray', 'OOPS');
                 console.log(updatedMainEntry, oldMainEntry);
             }
         } catch (error) {
@@ -589,7 +587,7 @@ class CreateEditEntryScreen extends Component {
             }
             var periodTill = new Date(
                 new Date(entry.periodFrom).setFullYear(
-                    entry.periodFrom.getFullYear() + 1
+                    entry.periodFrom.getFullYear() + 10
                 )
             );
 
@@ -598,7 +596,7 @@ class CreateEditEntryScreen extends Component {
                 categorie: entry.categorie,
                 interval: entry.interval,
                 description: entry.description,
-                fixedCosts: entry.fixedCosts ? entry.fixedCosts : false,
+                fixedCosts: entry.fixedCosts == 'true' ? 'true' : 'false',
                 periodFrom: entry.periodFrom,
                 periodTill: entry.periodTill ? entry.periodTill : periodTill,
                 badge: entry.badge ? entry.badge : ''
@@ -607,14 +605,12 @@ class CreateEditEntryScreen extends Component {
             var createdMainEntry = mainEntry;
 
             if (!this.state.isTest) {
-                console.info('create MainEntry', mainEntry);
                 createdMainEntry = await MainEntrys.insert(mainEntry)[0];
             } else {
                 console.info('isTest create MainEntry', mainEntry);
-                console.info('TEST JSON');
-                console.info(JSON.stringify(mainEntry));
-                console.info('TEST JSON END');
-                console.log('FROM', mainEntry.periodFrom);
+                // console.info('TEST JSON');
+                // console.info(JSON.stringify(mainEntry));
+                // console.info('TEST JSON END');
             }
             await this._createEntrys(
                 createdMainEntry,
@@ -631,7 +627,7 @@ class CreateEditEntryScreen extends Component {
             var id = this.state.entry.id;
             await this._deleteEntrys(id);
 
-            MainEntrys.remove({id: this.state.entry.id}, true);
+            await MainEntrys.remove({id: this.state.entry.id}, true);
             this.props.navigation.goBack();
         } catch (error) {
             error_handler._handleError('_deleteMainEntryAndEntrys', error);
@@ -647,7 +643,6 @@ class CreateEditEntryScreen extends Component {
                         db.remove(item, true);
                     });
             });
-            console.log('deleted Entrys');
         } catch (error) {
             error_handler._handleError('_deleteEntrys', error);
         }
@@ -892,8 +887,6 @@ class CreateEditEntryScreen extends Component {
                         </ListItem>
                     );
                 default:
-                    console.log(item.type);
-
                     return null;
             }
         } catch (error) {
@@ -903,9 +896,7 @@ class CreateEditEntryScreen extends Component {
     }
 
     _renderListInputItem(item, entry) {
-        var onChangeText = () => {
-            console.log('onChangeText');
-        };
+        var onChangeText = () => {};
         var error = false;
         var value = '';
         var errorMessage = strings('MissingInformaton');
@@ -965,9 +956,7 @@ class CreateEditEntryScreen extends Component {
     }
 
     _renderListSwitchItem(item, entry) {
-        var onValueChange = (val) => {
-            console.log('onValueChange', val);
-        };
+        var onValueChange = (val) => {};
         var value = '';
         var title = '';
         if (item.title == strings('fixedCosts')) {
@@ -979,7 +968,10 @@ class CreateEditEntryScreen extends Component {
                     }
                 }));
             };
-            value = entry.fixedCosts;
+            value =
+                entry.fixedCosts == 'true' || entry.fixedCosts == true
+                    ? true
+                    : false;
             title = strings('fixedCosts');
         }
         return (
@@ -993,9 +985,7 @@ class CreateEditEntryScreen extends Component {
 
     _renderListNavItem(item, entry) {
         var nav = undefined;
-        var onPress = () => {
-            console.log('_renderListNavItem', nav);
-        };
+        var onPress = () => {};
         var rightText = false;
         if (item.title == strings('categorie')) {
             nav = 'Categories';
@@ -1020,9 +1010,7 @@ class CreateEditEntryScreen extends Component {
     _renderListActionSheetItem(item, entry) {
         var title = '';
         var BUTTONS = [];
-        var onPress = (buttonIndex) => {
-            console.log('_renderListActionSheetItem', buttonIndex);
-        };
+        var onPress = (buttonIndex) => {};
         var rightText = false;
         if (item.title == strings('interval')) {
             var intervals = this.state.intervals;
@@ -1144,7 +1132,7 @@ class CreateEditEntryScreen extends Component {
     }
 
     render() {
-        const {options, entry} = this.state;
+        const {options, entry, isLastMonth} = this.state;
         return (
             <Container>
                 <Header>
@@ -1213,65 +1201,87 @@ class CreateEditEntryScreen extends Component {
                         keyExtractor={(item, index) => index.toString()}
                         scrollEnabled={true}
                         renderItem={({item}) => this._renderItem(item)}
-                        ListFooterComponent={() => (
+                        ListHeaderComponent={() => (
                             <>
-                                <Title>Vorschau</Title>
-                                <ListItem
-                                    style={{
-                                        marginLeft: 0,
-                                        backgroundColor: entry.badge
-                                            ? GlobalColors[entry.badge]
-                                            : undefined,
-                                        borderTopRightRadius: 15,
-                                        borderBottomRightRadius: 15,
-                                        marginRight: 10
-                                    }}
-                                    icon
-                                >
-                                    <Left
-                                        style={{
-                                            marginLeft: 0,
-                                            marginRight: 5,
-                                            backgroundColor: entry.fixedCosts
-                                                ? GlobalColors.mainColor
-                                                : undefined,
-                                            borderTopRightRadius: 15,
-                                            borderBottomRightRadius: 15
-                                        }}
-                                    >
-                                        <Icon
-                                            style={{
-                                                color: entry.fixedCosts
-                                                    ? GlobalColors.light
-                                                    : undefined
-                                            }}
-                                            light
-                                            name={
-                                                entry.categorie
-                                                    ? entry.categorie.icon
-                                                    : 'car'
-                                            }
-                                        ></Icon>
-                                    </Left>
-                                    <Body>
-                                        <Text>
-                                            {entry.description
-                                                ? entry.description
-                                                : 'Name'}
-                                        </Text>
-                                    </Body>
-                                    <Right>
-                                        <Text style={{color: '#333'}}>
-                                            {entry.amount
-                                                ? entry.amount +
-                                                  ' ' +
-                                                  strings('Currency')
-                                                : 50 + strings('Currency')}
-                                        </Text>
-                                    </Right>
-                                </ListItem>
+                                {isLastMonth ? (
+                                    <Card>
+                                        <CardItem firstlast>
+                                            <Body>
+                                                <Text note warning>
+                                                    {
+                                                        'Dies ist der letze Monat des Eintrages, möchten Sie verlängern?'
+                                                    }
+                                                </Text>
+                                            </Body>
+                                        </CardItem>
+                                    </Card>
+                                ) : null}
                             </>
                         )}
+                        // ListFooterComponent={() => (
+                        //     <>
+                        //         <Title>Vorschau</Title>
+                        //         <ListItem
+                        //             style={{
+                        //                 marginLeft: 0,
+                        //                 backgroundColor: entry.badge
+                        //                     ? GlobalColors[entry.badge]
+                        //                     : undefined,
+                        //                 borderTopRightRadius: 15,
+                        //                 borderBottomRightRadius: 15,
+                        //                 marginRight: 10
+                        //             }}
+                        //             icon
+                        //         >
+                        //             <Left
+                        //                 style={{
+                        //                     marginLeft: 0,
+                        //                     marginRight: 5,
+                        //                     backgroundColor:
+                        //                         entry.fixedCosts == 'true' ||
+                        //                         entry.fixedCosts == true
+                        //                             ? GlobalColors.mainColor
+                        //                             : undefined,
+                        //                     borderTopRightRadius: 15,
+                        //                     borderBottomRightRadius: 15
+                        //                 }}
+                        //             >
+                        //                 <Icon
+                        //                     style={{
+                        //                         color:
+                        //                             entry.fixedCosts ==
+                        //                                 'true' ||
+                        //                             entry.fixedCosts == true
+                        //                                 ? GlobalColors.light
+                        //                                 : undefined
+                        //                     }}
+                        //                     light
+                        //                     name={
+                        //                         entry.categorie
+                        //                             ? entry.categorie.icon
+                        //                             : 'car'
+                        //                     }
+                        //                 ></Icon>
+                        //             </Left>
+                        //             <Body>
+                        //                 <Text>
+                        //                     {entry.description
+                        //                         ? entry.description
+                        //                         : 'Name'}
+                        //                 </Text>
+                        //             </Body>
+                        //             <Right>
+                        //                 <Text style={{color: '#333'}}>
+                        //                     {entry.amount
+                        //                         ? entry.amount +
+                        //                           ' ' +
+                        //                           strings('Currency')
+                        //                         : 50 + strings('Currency')}
+                        //                 </Text>
+                        //             </Right>
+                        //         </ListItem>
+                        //     </>
+                        // )}
                     />
                     {this.state.entry && this.state.entry.id ? (
                         <Button
@@ -1287,8 +1297,7 @@ class CreateEditEntryScreen extends Component {
                                     [
                                         {
                                             text: strings('Cancel'),
-                                            onPress: () =>
-                                                console.log('Cancel Pressed'),
+                                            onPress: () => {},
                                             style: 'cancel'
                                         },
                                         {

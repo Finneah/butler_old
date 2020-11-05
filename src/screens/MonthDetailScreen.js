@@ -8,12 +8,14 @@ import {
     Container,
     Content,
     Footer,
+    FooterTab,
     Header,
     Icon,
     Left,
     ListItem,
     Right,
     Text,
+    Title,
     View
 } from 'native-base';
 
@@ -103,7 +105,6 @@ class MonthDetailScreen extends Component {
     }
 
     _addDataToIncomingAndOutgoingData(data) {
-        console.log(data);
         var sections = [];
         var incomingData = {
             section: {title: strings('Incomings'), complete: 0},
@@ -114,14 +115,6 @@ class MonthDetailScreen extends Component {
             data: []
         };
 
-        var incomingData2 = {
-            section: {title: strings('Incomings'), complete: 0},
-            data: []
-        };
-        var outgoingData2 = {
-            section: {title: strings('Outgoings'), complete: 0},
-            data: []
-        };
         for (let i = 0; i < data.length; i++) {
             const element = data[i];
             switch (element.categorie.typ) {
@@ -158,10 +151,84 @@ class MonthDetailScreen extends Component {
     }
 
     _sortData(data) {
-        var d = [];
         var sortedByAmount = data.data;
         sortedByAmount.sort(function (a, b) {
-            console.log(a, b);
+            if (
+                parseFloat(a.mainEntry.amount) > parseFloat(b.mainEntry.amount)
+            ) {
+                return -1;
+            } else if (
+                parseFloat(a.mainEntry.amount) < parseFloat(b.mainEntry.amount)
+            ) {
+                return 1;
+            }
+        });
+        this._testOtherSort(data);
+        // data.data = sortedByAmount;
+    }
+
+    _testOtherSort(data) {
+        var d = [];
+        var blueData = [];
+        var greenData = [];
+        var yellowData = [];
+        var redData = [];
+        var noBadgeData = [];
+        for (let i = 0; i < data.data.length; i++) {
+            const element = data.data[i];
+            switch (element.mainEntry.badge) {
+                case 'listBadgeBlue':
+                    blueData.push(element);
+                    break;
+                case 'listBadgeRed':
+                    redData.push(element);
+                    break;
+                case 'listBadgeYellow':
+                    yellowData.push(element);
+                    break;
+                case 'listBadgeGreen':
+                    greenData.push(element);
+                    break;
+                default:
+                    noBadgeData.push(element);
+                    break;
+            }
+        }
+
+        blueData.sort(function (a, b) {
+            if (
+                parseFloat(a.mainEntry.amount) > parseFloat(b.mainEntry.amount)
+            ) {
+                return -1;
+            } else if (
+                parseFloat(a.mainEntry.amount) < parseFloat(b.mainEntry.amount)
+            ) {
+                return 1;
+            }
+        });
+        redData.sort(function (a, b) {
+            if (
+                parseFloat(a.mainEntry.amount) > parseFloat(b.mainEntry.amount)
+            ) {
+                return -1;
+            } else if (
+                parseFloat(a.mainEntry.amount) < parseFloat(b.mainEntry.amount)
+            ) {
+                return 1;
+            }
+        });
+        greenData.sort(function (a, b) {
+            if (
+                parseFloat(a.mainEntry.amount) > parseFloat(b.mainEntry.amount)
+            ) {
+                return -1;
+            } else if (
+                parseFloat(a.mainEntry.amount) < parseFloat(b.mainEntry.amount)
+            ) {
+                return 1;
+            }
+        });
+        yellowData.sort(function (a, b) {
             if (
                 parseFloat(a.mainEntry.amount) > parseFloat(b.mainEntry.amount)
             ) {
@@ -173,7 +240,73 @@ class MonthDetailScreen extends Component {
             }
         });
 
-        data.data = sortedByAmount;
+        noBadgeData.sort(function (a, b) {
+            if (
+                parseFloat(a.mainEntry.amount) > parseFloat(b.mainEntry.amount)
+            ) {
+                return -1;
+            } else if (
+                parseFloat(a.mainEntry.amount) < parseFloat(b.mainEntry.amount)
+            ) {
+                return 1;
+            }
+        });
+
+        blueData.forEach((element) => {
+            element.isLastMonth = this._getIsLastMonth(element);
+            d.push(element);
+        });
+
+        redData.forEach((element) => {
+            element.isLastMonth = this._getIsLastMonth(element);
+            d.push(element);
+        });
+
+        yellowData.forEach((element) => {
+            element.isLastMonth = this._getIsLastMonth(element);
+            d.push(element);
+        });
+
+        greenData.forEach((element) => {
+            element.isLastMonth = this._getIsLastMonth(element);
+            d.push(element);
+        });
+
+        noBadgeData.forEach((element) => {
+            element.isLastMonth = this._getIsLastMonth(element);
+            d.push(element);
+        });
+
+        data.data = d;
+    }
+
+    _getIsLastMonth(element) {
+        const {year, month} = this.props.route.params;
+
+        if (year && month) {
+            if (
+                new Date(element.mainEntry.periodTill).getMonth() + 1 ==
+                    month.monthIndex &&
+                new Date(element.mainEntry.periodTill).getFullYear() == year &&
+                element.interval.key != '0'
+            ) {
+                return true;
+            }
+            return false;
+        }
+        return false;
+    }
+    _getRemainingText() {
+        const {sections} = this.state;
+        if (sections) {
+            var remaining =
+                sections[0].section.complete - sections[1].section.complete;
+
+            remaining = remaining.toString().replace('.', ',');
+
+            return remaining + ' ' + strings('Currency');
+        }
+        return '';
     }
 
     render() {
@@ -225,20 +358,16 @@ class MonthDetailScreen extends Component {
                     <SectionList
                         renderSectionHeader={({section: {section}}) => (
                             <ListItem itemDivider>
-                                <Body>
-                                    <Text>{section.title}</Text>
-                                </Body>
+                                <Left>
+                                    <Title>{section.title}</Title>
+                                </Left>
 
                                 <Right>
-                                    <Text
-                                        style={{
-                                            fontWeight: 'bold'
-                                        }}
-                                    >
+                                    <Title>
                                         {section.complete +
                                             ' ' +
                                             strings('Currency')}
-                                    </Text>
+                                    </Title>
                                 </Right>
                             </ListItem>
                         )}
@@ -252,7 +381,13 @@ class MonthDetailScreen extends Component {
                                     borderTopRightRadius: 15,
 
                                     borderBottomRightRadius: 15,
-                                    marginRight: 10
+                                    marginRight: 10,
+                                    borderBottomWidth: item.isLastMonth ? 2 : 0,
+                                    borderTopWidth: item.isLastMonth ? 2 : 0,
+                                    borderRightWidth: item.isLastMonth ? 2 : 0,
+                                    borderColor: item.isLastMonth
+                                        ? GlobalColors.warning
+                                        : undefined
                                 }}
                                 icon
                                 onPress={() => {
@@ -265,7 +400,8 @@ class MonthDetailScreen extends Component {
                                             entry: item.mainEntry,
                                             selectedMonth: this.state.month
                                                 .monthIndex,
-                                            selectedYear: this.state.year
+                                            selectedYear: this.state.year,
+                                            isLastMonth: item.isLastMonth
                                         }
                                     });
                                 }}
@@ -275,9 +411,7 @@ class MonthDetailScreen extends Component {
                                         marginLeft: 0,
                                         marginRight: 5,
                                         backgroundColor:
-                                            item.mainEntry.fixedCosts ==
-                                                'true' ||
-                                            item.mainEntry.fixedCosts == true
+                                            item.mainEntry.fixedCosts == 'true'
                                                 ? GlobalColors.mainColor
                                                 : undefined,
                                         borderTopRightRadius: 15,
@@ -288,9 +422,7 @@ class MonthDetailScreen extends Component {
                                         style={{
                                             color:
                                                 item.mainEntry.fixedCosts ==
-                                                    'true' ||
-                                                item.mainEntry.fixedCosts ==
-                                                    true
+                                                'true'
                                                     ? GlobalColors.light
                                                     : undefined
                                         }}
@@ -298,10 +430,27 @@ class MonthDetailScreen extends Component {
                                     ></Icon>
                                 </Left>
                                 <Body>
-                                    <Text>{item.mainEntry.description}</Text>
+                                    <Text
+                                        style={
+                                            item.isLastMonth
+                                                ? {color: GlobalColors.warning}
+                                                : undefined
+                                        }
+                                    >
+                                        {item.mainEntry.description}
+                                    </Text>
                                 </Body>
                                 <Right>
-                                    <Text style={{color: '#333'}}>
+                                    <Text
+                                        style={
+                                            item.isLastMonth
+                                                ? {color: GlobalColors.warning}
+                                                : {
+                                                      color:
+                                                          GlobalColors.mainColor
+                                                  }
+                                        }
+                                    >
                                         {item.mainEntry.amount +
                                             ' ' +
                                             strings('Currency')}
@@ -326,44 +475,17 @@ class MonthDetailScreen extends Component {
                         )}
                     />
                 </SafeAreaView>
+
                 <ListItem itemDivider>
-                    <Body>
-                        <Text style={{fontWeight: 'bold'}}>
-                            {strings('Remaining')}
-                        </Text>
-                    </Body>
+                    <Left>
+                        <Title>{strings('Remaining')}</Title>
+                    </Left>
                     <Right>
-                        <Text style={{fontWeight: 'bold'}}>
-                            {this._getRemainingText()}
-                        </Text>
+                        <Title>{this._getRemainingText()}</Title>
                     </Right>
                 </ListItem>
             </Container>
         );
     }
-
-    _getRemainingText() {
-        const {sections} = this.state;
-        if (sections) {
-            var remaining =
-                sections[0].section.complete - sections[1].section.complete;
-
-            remaining = remaining.toString().replace('.', ',');
-
-            return remaining + ' ' + strings('Currency');
-        }
-        return '';
-    }
 }
 export default MonthDetailScreen;
-const styles = StyleSheet.create({
-    container: {flex: 1, padding: 16, paddingTop: 30, backgroundColor: '#fff'},
-    head: {height: 40, backgroundColor: '#f1f8ff'},
-    text: {margin: 6},
-    textLeft: {
-        textAlign: 'left'
-    },
-    textRight: {
-        textAlign: 'right'
-    }
-});

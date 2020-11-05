@@ -103,7 +103,6 @@ class OverviewScreen extends Component {
                         year: selectedYear.toString(),
                         month: (date.getMonth() + 1).toString()
                     });
-                    console.log(sectionEntrys);
 
                     if (sectionEntrys) {
                         sectionEntrys.incoming = 0;
@@ -322,6 +321,7 @@ class OverviewScreen extends Component {
                             transparent
                             onPress={() => {
                                 this.setState({selectedYear: selectedYear - 1});
+                                this.scrollToTop();
                             }}
                         >
                             <Icon name="arrow-back" />
@@ -335,6 +335,7 @@ class OverviewScreen extends Component {
                             transparent
                             onPress={() => {
                                 this.setState({selectedYear: selectedYear + 1});
+                                this.scrollToTop();
                             }}
                         >
                             <Text>{this.state.selectedYear + 1}</Text>
@@ -457,6 +458,19 @@ class OverviewScreen extends Component {
                             </Card>
                         )}
                         ListEmptyComponent={() => (
+                            <Card>
+                                <CardItem firstlast>
+                                    <Body>
+                                        <Text>
+                                            {
+                                                'Es sind noch keine Einträge vorhanden'
+                                            }
+                                        </Text>
+                                    </Body>
+                                </CardItem>
+                            </Card>
+                        )}
+                        ListFooterComponent={() => (
                             <Card>
                                 <CardItem firstlast>
                                     <Body>

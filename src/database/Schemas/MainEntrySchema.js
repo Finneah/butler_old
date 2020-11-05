@@ -1,7 +1,7 @@
 export class MainEntrySchema {
     name = 'MainEntrys';
     props = {
-        fixedCosts: 'boolean',
+        fixedCosts: 'string',
         description: 'string',
         amount: 'string',
         categorie: '#Categories',
