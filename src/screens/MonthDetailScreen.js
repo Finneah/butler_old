@@ -23,7 +23,6 @@ import {Dimensions, SectionList, SafeAreaView, StyleSheet} from 'react-native';
 
 import {strings} from '../i18n';
 
-import {ProgressChart, PieChart} from 'react-native-chart-kit';
 import {Entrys} from '../database';
 
 import Error_Handler from '../Error_Handler';
@@ -311,7 +310,6 @@ class MonthDetailScreen extends Component {
 
     render() {
         const {sections} = this.state;
-        console.log(sections);
 
         return (
             <Container>
@@ -373,15 +371,16 @@ class MonthDetailScreen extends Component {
                         )}
                         renderItem={({item}) => (
                             <ListItem
+                                noBorder
                                 style={{
                                     marginLeft: 0,
                                     backgroundColor: item.mainEntry.badge
                                         ? GlobalColors[item.mainEntry.badge]
                                         : undefined,
                                     borderTopRightRadius: 15,
-
                                     borderBottomRightRadius: 15,
                                     marginRight: 10,
+                                    marginVertical: 2,
                                     borderBottomWidth: item.isLastMonth ? 2 : 0,
                                     borderTopWidth: item.isLastMonth ? 2 : 0,
                                     borderRightWidth: item.isLastMonth ? 2 : 0,
@@ -413,7 +412,7 @@ class MonthDetailScreen extends Component {
                                         backgroundColor:
                                             item.mainEntry.fixedCosts == 'true'
                                                 ? GlobalColors.mainColor
-                                                : undefined,
+                                                : GlobalColors.lightGrey,
                                         borderTopRightRadius: 15,
                                         borderBottomRightRadius: 15
                                     }}

@@ -1,4 +1,5 @@
-import React, {Component} from 'react';
+import DateTimePicker from '@react-native-community/datetimepicker';
+import * as moment from 'moment';
 import {
     Body,
     Button,
@@ -13,31 +14,30 @@ import {
     Switch,
     Text,
     Title,
+    Toast,
     View
 } from 'native-base';
-
+import React, {Component} from 'react';
 import {Alert, FlatList} from 'react-native';
-
-import {strings} from '../i18n';
-import Helper from '../Helper';
-import DateTimePicker from '@react-native-community/datetimepicker';
-import {Intervals, Entrys, MainEntrys} from '../database';
-
-import Error_Handler from '../Error_Handler';
+import {SafeAreaView} from 'react-native-safe-area-context';
+import _ from 'lodash';
 import ChooseUpdateModal from '../components/ChooseUpdateModal';
-import {EntryModel} from '../database/Models/EntryModel';
-import {MainEntryModel} from '../database/Models/MainEntryModel';
-import ListSwitchItem from '../components/ListItem/ListSwitchItem';
-import ListInputItem from '../components/ListItem/ListInputItem';
-import ListNavItem from '../components/ListItem/ListNavItem';
 import ListActionSheetItem from '../components/ListItem/ListActionSheetItem';
 import ListDateTimePickerItem from '../components/ListItem/ListDateTimePickerItem';
-import {SafeAreaView} from 'react-native-safe-area-context';
-import GlobalColors from '../style/GlobalColors';
-
+import ListInputItem from '../components/ListItem/ListInputItem';
+import ListNavItem from '../components/ListItem/ListNavItem';
+import ListSwitchItem from '../components/ListItem/ListSwitchItem';
+import {Intervals, Entrys, MainEntrys} from '../database';
 import mainEntryJSON from './../database/mainEntrys.json';
 import {CategorieModel} from '../database/Models/CategorieModel';
+import {EntryModel} from '../database/Models/EntryModel';
 import {IntervalModel} from '../database/Models/IntervalModel';
+import {MainEntryModel} from '../database/Models/MainEntryModel';
+import Error_Handler from '../Error_Handler';
+import Helper from '../Helper';
+import {strings} from '../i18n';
+import GlobalColors from '../style/GlobalColors';
+
 let entryModel = new EntryModel();
 let mainEntryModel = new MainEntryModel();
 let helper = new Helper();
@@ -211,30 +211,34 @@ class CreateEditEntryScreen extends Component {
          * @todo convert periods
          */
 
-        if (typeof updatedTill == 'string' && updatedTill != '') {
-            updatedTill = new Date(updatedTill).getTime();
-        } else if (typeof updatedTill == 'object') {
-            updatedTill = updatedTill.getTime();
-        }
+        try {
+            if (typeof updatedTill == 'string' && updatedTill != '') {
+                updatedTill = new Date(updatedTill).getTime();
+            } else if (typeof updatedTill == 'object') {
+                updatedTill = updatedTill.getTime();
+            }
 
-        if (typeof oldFrom == 'string' && oldFrom != '') {
-            oldFrom = new Date(oldFrom).getTime();
-        } else if (typeof oldFrom == 'object') {
-            oldFrom = new Date(oldFrom).getTime();
-        }
-        if (typeof oldTill == 'string' && oldTill != '') {
-            oldTill = new Date(oldTill).getTime();
-        } else if (typeof oldTill == 'object') {
-            oldTill = new Date(oldTill).getTime();
-        }
+            if (typeof oldFrom == 'string' && oldFrom != '') {
+                oldFrom = new Date(oldFrom).getTime();
+            } else if (typeof oldFrom == 'object') {
+                oldFrom = new Date(oldFrom).getTime();
+            }
+            if (typeof oldTill == 'string' && oldTill != '') {
+                oldTill = new Date(oldTill).getTime();
+            } else if (typeof oldTill == 'object') {
+                oldTill = new Date(oldTill).getTime();
+            }
 
-        if (typeof updatedFrom == 'string' && updatedFrom != '') {
-            updatedFrom = new Date(updatedFrom).getTime();
-        } else if (typeof updatedFrom == 'object') {
-            updatedFrom = updatedFrom.getTime();
-        }
+            if (typeof updatedFrom == 'string' && updatedFrom != '') {
+                updatedFrom = new Date(updatedFrom).getTime();
+            } else if (typeof updatedFrom == 'object') {
+                updatedFrom = updatedFrom.getTime();
+            }
 
-        return {updatedFrom, updatedTill, oldFrom, oldTill};
+            return {updatedFrom, updatedTill, oldFrom, oldTill};
+        } catch (error) {
+            error_handler._handleError('_checkPeriods', error);
+        }
     }
 
     async _insertOrUpdateEntry() {
@@ -256,27 +260,28 @@ class CreateEditEntryScreen extends Component {
             let testEntrys = mainEntryJSON;
             var categorieModel = new CategorieModel();
             var intervalModel = new IntervalModel();
-            testEntrys.forEach(async (testEntry) => {
-                var categorie = categorieModel.getCategorieByNameAndTyp(
-                    testEntry.categorie.name,
-                    testEntry.categorie.typ
-                );
-                var interval = intervalModel.getIntervalByKey(
-                    testEntry.interval.key
-                );
+            if (testEntrys) {
+                testEntrys.forEach(async (testEntry) => {
+                    var categorie = categorieModel.getCategorieByNameAndTyp(
+                        testEntry.categorie.name,
+                        testEntry.categorie.typ
+                    );
+                    var interval = intervalModel.getIntervalByKey(
+                        testEntry.interval.key
+                    );
 
-                testEntry.categorie = categorie;
-                testEntry.interval = interval;
+                    testEntry.categorie = categorie;
+                    testEntry.interval = interval;
 
-                await this._insertMainEntry(testEntry, false);
-            });
+                    await this._insertMainEntry(testEntry, false);
+                });
+            }
         } catch (error) {
             error_handler._handleError('_insertOrUpdateEntry', error);
         }
     }
 
     async _updateAllEntrys(mainEntry, id) {
-        console.info('_updateAllEntrys');
         try {
             if (!this.state.isTest) {
                 var newMainEntry = await MainEntrys.update(
@@ -287,7 +292,10 @@ class CreateEditEntryScreen extends Component {
                         description: mainEntry.description,
                         interval: mainEntry.interval,
                         fixedCosts:
-                            mainEntry.fixedCosts == 'true' ? 'true' : 'false',
+                            mainEntry.fixedCosts == 'true' ||
+                            mainEntry.fixedCosts == true
+                                ? 'true'
+                                : 'false',
                         periodFrom: mainEntry.periodFrom,
                         periodTill: mainEntry.periodTill,
                         badge: mainEntry.badge ? mainEntry.badge : ''
@@ -305,7 +313,10 @@ class CreateEditEntryScreen extends Component {
                     description: mainEntry.description,
                     interval: mainEntry.interval,
                     fixedCosts:
-                        mainEntry.fixedCosts == 'true' ? 'true' : 'false',
+                        mainEntry.fixedCosts == 'true' ||
+                        mainEntry.fixedCosts == true
+                            ? 'true'
+                            : 'false',
                     periodFrom: mainEntry.periodFrom,
                     periodTill: mainEntry.periodTill,
                     badge: mainEntry.badge ? mainEntry.badge : ''
@@ -323,14 +334,7 @@ class CreateEditEntryScreen extends Component {
 
             var oldMainEntry = mainEntryModel.getMainEntryById(entry.id);
             var updatedMainEntry = {
-                amount: entry.amount,
-                categorie: entry.categorie,
-                interval: entry.interval,
-                description: entry.description,
-                fixedCosts: entry.fixedCosts == true ? 'true' : 'false',
-                periodFrom: entry.periodFrom,
-                periodTill: entry.periodTill ? entry.periodTill : '',
-                badge: entry.badge ? entry.badge : ''
+                ...entry
             };
             updatedMainEntry.periodTill =
                 updatedMainEntry.periodTill == undefined
@@ -352,27 +356,100 @@ class CreateEditEntryScreen extends Component {
                 oldMainEntry.periodFrom,
                 oldMainEntry.periodTill
             );
-            var expression = updatedFrom < oldFrom && updatedTill > oldTill;
+            if (this._entryHasChanged(oldMainEntry, updatedMainEntry)) {
+                var expression = updatedFrom < oldFrom && updatedTill > oldTill;
 
-            var expression1 = updatedFrom < oldFrom && updatedTill == oldTill;
+                var expression1 =
+                    updatedFrom < oldFrom && updatedTill == oldTill;
 
-            var expression2 = updatedFrom == oldFrom && updatedTill == oldTill;
+                var expression2 =
+                    updatedFrom == oldFrom && updatedTill == oldTill;
 
-            var expression3 = updatedFrom == oldFrom && updatedTill > oldTill;
+                var expression3 =
+                    updatedFrom == oldFrom && updatedTill > oldTill;
 
-            if (expression || expression1 || expression2 || expression3) {
-                // change all
+                if (expression || expression1 || expression2 || expression3) {
+                    // change all
+                    /**
+                     * @todo Alert
+                     *
+                     */
+                    var {selectedMonth} = this.props.route.params;
 
-                await this._updateAllEntrys(updatedMainEntry, oldMainEntry.id);
-                this.props.navigation.goBack();
+                    var m = moment.months('de');
+
+                    Alert.alert(strings('AskUpdateSerie'), '', [
+                        {
+                            text: strings('Cancel'),
+                            onPress: () => {},
+                            style: 'cancel'
+                        },
+                        {
+                            text: strings('allEntrys'),
+                            onPress: async () => {
+                                await this._updateAllEntrys(
+                                    updatedMainEntry,
+                                    oldMainEntry.id
+                                );
+                                this.props.navigation.goBack();
+                            },
+
+                            style: 'destructive'
+                        },
+                        {
+                            text: strings('thisMonth', {
+                                MONTH: m[selectedMonth - 1]
+                            }),
+                            style: 'default',
+                            onPress: async () => {
+                                updatedMainEntry.periodFrom = new Date(
+                                    new Date(
+                                        new Date().setMonth(selectedMonth - 1)
+                                    ).toDateString()
+                                );
+                                updatedMainEntry.periodTill = new Date(
+                                    new Date(
+                                        new Date().setMonth(selectedMonth - 1)
+                                    ).toDateString()
+                                );
+
+                                await this._createUpdateEntryArray(
+                                    updatedMainEntry,
+                                    oldMainEntry
+                                );
+                            }
+                        }
+                    ]);
+                } else {
+                    await this._createUpdateEntryArray(
+                        updatedMainEntry,
+                        oldMainEntry
+                    );
+                }
             } else {
-                await this._createUpdateEntryArray(
-                    updatedMainEntry,
-                    oldMainEntry
-                );
+                // this.props.navigation.goBack();
+                Toast.show({
+                    text: strings('nothingChanged'),
+                    buttonText: strings('ok')
+                });
             }
         } catch (error) {
             error_handler._handleError('_updateMainEntrysAndEntrys', error);
+        }
+    }
+
+    _entryHasChanged(oldMainEntry, updatedMainEntry) {
+        try {
+            var oldE = {
+                ...oldMainEntry
+            };
+            oldE.id = undefined;
+            var newE = {...updatedMainEntry};
+            newE.id = undefined;
+
+            return !_.isEqual(oldE, newE);
+        } catch (error) {
+            error_handler._handleError('_entryHasChanged', error);
         }
     }
 
@@ -389,6 +466,7 @@ class CreateEditEntryScreen extends Component {
                 oldMainEntry.periodFrom,
                 oldMainEntry.periodTill
             );
+
             if (updatedFrom > oldFrom && updatedTill < oldTill) {
                 var updateMainEntryArray = [];
 
@@ -518,8 +596,8 @@ class CreateEditEntryScreen extends Component {
                     showModalChooseUpdate: true
                 });
             } else {
-                console.log('_createUpdateEntryArray', 'OOPS');
-                console.log(updatedMainEntry, oldMainEntry);
+                console.warn('_createUpdateEntryArray', 'OOPS');
+                console.info(updatedMainEntry, oldMainEntry);
             }
         } catch (error) {
             error_handler._handleError('_createUpdateEntryArray', error);
@@ -596,7 +674,10 @@ class CreateEditEntryScreen extends Component {
                 categorie: entry.categorie,
                 interval: entry.interval,
                 description: entry.description,
-                fixedCosts: entry.fixedCosts == 'true' ? 'true' : 'false',
+                fixedCosts:
+                    entry.fixedCosts == 'true' || entry.fixedCosts == true
+                        ? 'true'
+                        : 'false',
                 periodFrom: entry.periodFrom,
                 periodTill: entry.periodTill ? entry.periodTill : periodTill,
                 badge: entry.badge ? entry.badge : ''
@@ -605,6 +686,7 @@ class CreateEditEntryScreen extends Component {
             var createdMainEntry = mainEntry;
 
             if (!this.state.isTest) {
+                console.info(' create MainEntry', mainEntry);
                 createdMainEntry = await MainEntrys.insert(mainEntry)[0];
             } else {
                 console.info('isTest create MainEntry', mainEntry);
@@ -637,11 +719,14 @@ class CreateEditEntryScreen extends Component {
     async _deleteEntrys(id) {
         try {
             await Entrys.perform(function (db) {
-                entryModel
-                    .filterEntryBy({mainEntry_id: id})
-                    .forEach(function (item) {
+                var filteredEntrys = entryModel.filterEntryBy({
+                    mainEntry_id: id
+                });
+                if (filteredEntrys) {
+                    filteredEntrys.forEach(function (item) {
                         db.remove(item, true);
                     });
+                }
             });
         } catch (error) {
             error_handler._handleError('_deleteEntrys', error);
@@ -771,118 +856,130 @@ class CreateEditEntryScreen extends Component {
                             <Left>
                                 <Text>{item.title}</Text>
                             </Left>
-                            <Body>
-                                <View
+                            <Body
+                                style={{
+                                    justifyContent: 'space-evenly',
+                                    alignContent: 'flex-end',
+                                    flexDirection: 'row'
+                                }}
+                            >
+                                <Button
                                     style={{
-                                        justifyContent: 'space-evenly',
-                                        flexDirection: 'row'
+                                        backgroundColor:
+                                            GlobalColors.listBadgeBlue,
+                                        borderRadius: 15
                                     }}
-                                >
-                                    <Button
-                                        style={{
-                                            backgroundColor:
-                                                GlobalColors.listBadgeBlue,
-
-                                            borderRadius: 15
-                                        }}
-                                        onPress={() => {
-                                            this.setState((prevState) => ({
-                                                entry: {
-                                                    ...prevState.entry,
-                                                    badge: 'listBadgeBlue'
-                                                }
-                                            }));
-                                        }}
-                                    >
-                                        {entry.badge == 'listBadgeBlue' ? (
-                                            <Icon name="checkmark"></Icon>
-                                        ) : (
-                                            <Icon name="add"></Icon>
-                                        )}
-                                    </Button>
-                                    <Button
-                                        style={{
-                                            backgroundColor:
-                                                GlobalColors.listBadgeGreen,
-
-                                            borderRadius: 15
-                                        }}
-                                        onPress={() => {
-                                            this.setState((prevState) => ({
-                                                entry: {
-                                                    ...prevState.entry,
-                                                    badge: 'listBadgeGreen'
-                                                }
-                                            }));
-                                        }}
-                                    >
-                                        {entry.badge == 'listBadgeGreen' ? (
-                                            <Icon name="checkmark"></Icon>
-                                        ) : (
-                                            <Icon name="add"></Icon>
-                                        )}
-                                    </Button>
-                                    <Button
-                                        style={{
-                                            backgroundColor:
-                                                GlobalColors.listBadgeRed,
-
-                                            borderRadius: 15
-                                        }}
-                                        onPress={() => {
-                                            this.setState((prevState) => ({
-                                                entry: {
-                                                    ...prevState.entry,
-                                                    badge: 'listBadgeRed'
-                                                }
-                                            }));
-                                        }}
-                                    >
-                                        {entry.badge == 'listBadgeRed' ? (
-                                            <Icon name="checkmark"></Icon>
-                                        ) : (
-                                            <Icon name="add"></Icon>
-                                        )}
-                                    </Button>
-
-                                    <Button
-                                        style={{
-                                            backgroundColor:
-                                                GlobalColors.listBadgeYellow,
-
-                                            borderRadius: 15
-                                        }}
-                                        onPress={() => {
-                                            this.setState((prevState) => ({
-                                                entry: {
-                                                    ...prevState.entry,
-                                                    badge: 'listBadgeYellow'
-                                                }
-                                            }));
-                                        }}
-                                    >
-                                        {entry.badge == 'listBadgeYellow' ? (
-                                            <Icon name="checkmark"></Icon>
-                                        ) : (
-                                            <Icon name="add"></Icon>
-                                        )}
-                                    </Button>
-                                </View>
-                            </Body>
-                            <Right>
-                                <Icon
                                     onPress={() => {
                                         this.setState((prevState) => ({
                                             entry: {
                                                 ...prevState.entry,
-                                                badge: undefined
+                                                badge: 'listBadgeBlue'
                                             }
                                         }));
                                     }}
-                                    style={{color: GlobalColors.warning}}
-                                    warning
-                                    name="trash"
-                                ></Icon>
+                                >
+                                    {entry.badge == 'listBadgeBlue' ? (
+                                        <Icon primary name="checkmark"></Icon>
+                                    ) : (
+                                        <Icon primary name="add"></Icon>
+                                    )}
+                                </Button>
+                                <Button
+                                    style={{
+                                        backgroundColor:
+                                            GlobalColors.listBadgeRed,
+
+                                        borderRadius: 15
+                                    }}
+                                    onPress={() => {
+                                        this.setState((prevState) => ({
+                                            entry: {
+                                                ...prevState.entry,
+                                                badge: 'listBadgeRed'
+                                            }
+                                        }));
+                                    }}
+                                >
+                                    {entry.badge == 'listBadgeRed' ? (
+                                        <Icon primary name="checkmark"></Icon>
+                                    ) : (
+                                        <Icon primary name="add"></Icon>
+                                    )}
+                                </Button>
+                                <Button
+                                    style={{
+                                        backgroundColor:
+                                            GlobalColors.listBadgeYellow,
+
+                                        borderRadius: 15
+                                    }}
+                                    onPress={() => {
+                                        this.setState((prevState) => ({
+                                            entry: {
+                                                ...prevState.entry,
+                                                badge: 'listBadgeYellow'
+                                            }
+                                        }));
+                                    }}
+                                >
+                                    {entry.badge == 'listBadgeYellow' ? (
+                                        <Icon primary name="checkmark"></Icon>
+                                    ) : (
+                                        <Icon primary name="add"></Icon>
+                                    )}
+                                </Button>
+                                <Button
+                                    style={{
+                                        backgroundColor:
+                                            GlobalColors.listBadgeGreen,
+
+                                        borderRadius: 15
+                                    }}
+                                    onPress={() => {
+                                        this.setState((prevState) => ({
+                                            entry: {
+                                                ...prevState.entry,
+                                                badge: 'listBadgeGreen'
+                                            }
+                                        }));
+                                    }}
+                                >
+                                    {entry.badge == 'listBadgeGreen' ? (
+                                        <Icon primary name="checkmark"></Icon>
+                                    ) : (
+                                        <Icon primary name="add"></Icon>
+                                    )}
+                                </Button>
+                            </Body>
+                            <Right>
+                                <Button
+                                    transparent
+                                    style={{
+                                        borderRadius: 15
+                                    }}
+                                    onPress={() => {
+                                        this.setState((prevState) => ({
+                                            entry: {
+                                                ...prevState.entry,
+                                                badge: 'listBadgeGreen'
+                                            }
+                                        }));
+                                    }}
+                                >
+                                    <Icon
+                                        onPress={() => {
+                                            this.setState((prevState) => ({
+                                                entry: {
+                                                    ...prevState.entry,
+                                                    badge: undefined
+                                                }
+                                            }));
+                                        }}
+                                        style={{color: GlobalColors.warning}}
+                                        warning
+                                        name="trash"
+                                    ></Icon>
+                                </Button>
                             </Right>
                         </ListItem>
                     );
@@ -901,110 +998,121 @@ class CreateEditEntryScreen extends Component {
         var value = '';
         var errorMessage = strings('MissingInformaton');
         var note = undefined;
+        try {
+            if (item.title == strings('description')) {
+                onChangeText = (text) => {
+                    this.setState((prevState) => ({
+                        entry: {
+                            ...prevState.entry,
+                            description: text
+                        }
+                    }));
+                };
+                error =
+                    !entry.description || entry.description.length < 3
+                        ? true
+                        : false;
+                value = entry.description;
+            } else {
+                onChangeText = (text) => {
+                    this.setState((prevState) => ({
+                        entry: {
+                            ...prevState.entry,
+                            amount: text
+                        }
+                    }));
+                };
 
-        if (item.title == strings('description')) {
-            onChangeText = (text) => {
-                this.setState((prevState) => ({
-                    entry: {
-                        ...prevState.entry,
-                        description: text
-                    }
-                }));
-            };
-            error =
-                !entry.description || entry.description.length < 3
-                    ? true
-                    : false;
-            value = entry.description;
-        } else {
-            onChangeText = (text) => {
-                this.setState((prevState) => ({
-                    entry: {
-                        ...prevState.entry,
-                        amount: text
-                    }
-                }));
-            };
-
-            error =
-                !entry.amount || entry.amount == ''
-                    ? true
-                    : !helper._checkValidFloatRegEx(entry.amount)
-                    ? true
-                    : false;
-            value = entry.amount;
-            errorMessage =
-                !entry.amount || entry.amount == ''
-                    ? strings('MissingInformaton')
-                    : !helper._checkValidFloatRegEx(entry.amount)
-                    ? strings('InvalidAmount')
-                    : null;
-            note = ' (' + strings('currency') + ')';
+                error =
+                    !entry.amount || entry.amount == ''
+                        ? true
+                        : !helper._checkValidFloatRegEx(entry.amount)
+                        ? true
+                        : false;
+                value = entry.amount;
+                errorMessage =
+                    !entry.amount || entry.amount == ''
+                        ? strings('MissingInformaton')
+                        : !helper._checkValidFloatRegEx(entry.amount)
+                        ? strings('InvalidAmount')
+                        : null;
+                note = ' (' + strings('currency') + ')';
+            }
+            return (
+                <ListInputItem
+                    title={item.title}
+                    note={note}
+                    onChangeText={onChangeText.bind(this)}
+                    value={value}
+                    returnKeyType={item.returnKeyType}
+                    keyboardType={item.keyboardType}
+                    error={error}
+                    errorMessage={errorMessage}
+                />
+            );
+        } catch (error) {
+            error_handler._handleError('_renderListInputItem', error);
         }
-        return (
-            <ListInputItem
-                title={item.title}
-                note={note}
-                onChangeText={onChangeText.bind(this)}
-                value={value}
-                returnKeyType={item.returnKeyType}
-                keyboardType={item.keyboardType}
-                error={error}
-                errorMessage={errorMessage}
-            />
-        );
     }
 
     _renderListSwitchItem(item, entry) {
         var onValueChange = (val) => {};
         var value = '';
         var title = '';
-        if (item.title == strings('fixedCosts')) {
-            onValueChange = (val) => {
-                this.setState((prevState) => ({
-                    entry: {
-                        ...prevState.entry,
-                        fixedCosts: val
-                    }
-                }));
-            };
-            value =
-                entry.fixedCosts == 'true' || entry.fixedCosts == true
-                    ? true
-                    : false;
-            title = strings('fixedCosts');
+        try {
+            if (item.title == strings('fixedCosts')) {
+                onValueChange = (val) => {
+                    this.setState((prevState) => ({
+                        entry: {
+                            ...prevState.entry,
+                            fixedCosts: val
+                        }
+                    }));
+                };
+                value =
+                    entry.fixedCosts == 'true' || entry.fixedCosts == true
+                        ? true
+                        : false;
+                title = strings('fixedCosts');
+            }
+            return (
+                <ListSwitchItem
+                    title={title}
+                    value={value}
+                    onValueChange={onValueChange.bind(this)}
+                />
+            );
+        } catch (error) {
+            error_handler._handleError('_renderListSwitchItem', error);
         }
-        return (
-            <ListSwitchItem
-                title={title}
-                value={value}
-                onValueChange={onValueChange.bind(this)}
-            />
-        );
     }
 
     _renderListNavItem(item, entry) {
         var nav = undefined;
         var onPress = () => {};
         var rightText = false;
-        if (item.title == strings('categorie')) {
-            nav = 'Categories';
-            onPress = () => {
-                this.props.navigation.navigate(nav, {
-                    params: {entry: entry}
-                });
-            };
-            rightText = entry.categorie
-                ? strings(entry.categorie.name)
-                : undefined;
+        try {
+            if (item.title == strings('categorie')) {
+                nav = 'Categories';
+                onPress = () => {
+                    this.props.navigation.navigate(nav, {
+                        params: {entry: entry}
+                    });
+                };
+                rightText = entry.categorie
+                    ? strings(entry.categorie.name)
+                    : undefined;
+            }
+            return (
+                <ListNavItem
+                    title={item.title}
+                    onPress={onPress.bind(this)}
+                    rightText={rightText}
+                />
+            );
+        } catch (error) {
+            error_handler._handleError('_renderListNavItem', error);
         }
-        return (
-            <ListNavItem
-                title={item.title}
-                onPress={onPress.bind(this)}
-                rightText={rightText}
-            />
-        );
     }
 
     _renderListActionSheetItem(item, entry) {
@@ -1012,122 +1120,132 @@ class CreateEditEntryScreen extends Component {
         var BUTTONS = [];
         var onPress = (buttonIndex) => {};
         var rightText = false;
-        if (item.title == strings('interval')) {
-            var intervals = this.state.intervals;
-            intervals.forEach((interval) => {
-                BUTTONS.push(strings(interval.name));
-            });
+        try {
+            if (item.title == strings('interval')) {
+                var intervals = this.state.intervals;
+                if (intervals) {
+                    intervals.forEach((interval) => {
+                        BUTTONS.push(strings(interval.name));
+                    });
+                }
 
-            title = item.title;
-            onPress = (buttonIndex) => {
-                this.setState((prevState) => ({
-                    entry: {
-                        ...prevState.entry,
-                        interval: intervals[buttonIndex]
-                    }
-                }));
-            };
-            rightText = entry.interval
-                ? strings(entry.interval.name)
-                : undefined;
+                title = item.title;
+                onPress = (buttonIndex) => {
+                    this.setState((prevState) => ({
+                        entry: {
+                            ...prevState.entry,
+                            interval: intervals[buttonIndex]
+                        }
+                    }));
+                };
+                rightText = entry.interval
+                    ? strings(entry.interval.name)
+                    : undefined;
+            }
+            BUTTONS.push(strings('Cancel'));
+
+            return (
+                <ListActionSheetItem
+                    title={title}
+                    BUTTONS={BUTTONS}
+                    actionSheetTitle={strings('ChooseInterval')}
+                    onPress={onPress.bind(this)}
+                    rightText={rightText}
+                />
+            );
+        } catch (error) {
+            error_handler._handleError('_renderListActionSheetItem', error);
         }
-        BUTTONS.push(strings('Cancel'));
-
-        return (
-            <ListActionSheetItem
-                title={title}
-                BUTTONS={BUTTONS}
-                actionSheetTitle={strings('ChooseInterval')}
-                onPress={onPress.bind(this)}
-                rightText={rightText}
-            />
-        );
     }
 
     _renderListDatePickerItem(item, entry) {
-        if (item.title == strings('periodFrom')) {
-            return (
-                <ListDateTimePickerItem
-                    title={item.title}
-                    style={{
-                        width: 120
-                    }}
-                    value={
-                        entry.periodFrom
-                            ? new Date(entry.periodFrom)
-                            : this.state.selectedMonth &&
-                              this.state.selectedYear
-                            ? new Date(
-                                  this.state.selectedMonth +
-                                      '.01.' +
-                                      this.state.selectedYear
-                              )
-                            : new Date()
-                    }
-                    mode={'date'}
-                    display="default"
-                    onChange={(event, date) => {
-                        this.setState((prevState) => {
-                            let entry = Object.assign({}, prevState.entry);
-                            entry.periodFrom = date;
-                            return {entry};
-                        });
-                    }}
-                />
-            );
-        } else {
-            return (
-                <ListItem>
-                    <Left>
-                        <Text>{item.title}</Text>
-                    </Left>
-                    <Body>
-                        {this.state.showTillDatePicker ? (
-                            <DateTimePicker
-                                style={{width: 120}}
-                                testID="dateTimePicker"
-                                locale={'de-DE'}
-                                value={
-                                    entry.periodTill
-                                        ? new Date(entry.periodTill)
-                                        : new Date()
-                                }
-                                mode={'date'}
-                                is24Hour={true}
-                                display="default"
-                                onChange={(event, date) => {
-                                    this.setState((prevState) => ({
-                                        entry: {
-                                            ...prevState.entry,
-                                            periodTill: date
-                                        }
-                                    }));
+        try {
+            if (item.title == strings('periodFrom')) {
+                return (
+                    <ListDateTimePickerItem
+                        title={item.title}
+                        style={{
+                            width: 120
+                        }}
+                        value={
+                            entry.periodFrom
+                                ? new Date(entry.periodFrom)
+                                : this.state.selectedMonth &&
+                                  this.state.selectedYear
+                                ? new Date(
+                                      this.state.selectedMonth +
+                                          '.01.' +
+                                          this.state.selectedYear
+                                  )
+                                : new Date()
+                        }
+                        mode={'date'}
+                        display="default"
+                        onChange={(event, date) => {
+                            this.setState((prevState) => {
+                                let entry = Object.assign({}, prevState.entry);
+                                entry.periodFrom = date;
+                                return {entry};
+                            });
+                        }}
+                    />
+                );
+            } else {
+                return (
+                    <ListItem>
+                        <Left>
+                            <Text>{item.title}</Text>
+                        </Left>
+                        <Body>
+                            {this.state.showTillDatePicker ? (
+                                <DateTimePicker
+                                    style={{width: 120}}
+                                    testID="dateTimePicker"
+                                    locale={'de-DE'}
+                                    value={
+                                        entry.periodTill
+                                            ? new Date(entry.periodTill)
+                                            : new Date()
+                                    }
+                                    mode={'date'}
+                                    is24Hour={true}
+                                    display="default"
+                                    onChange={(event, date) => {
+                                        this.setState((prevState) => ({
+                                            entry: {
+                                                ...prevState.entry,
+                                                periodTill: date
+                                            }
+                                        }));
+                                    }}
+                                />
+                            ) : null}
+                        </Body>
+                        <Right>
+                            <Switch
+                                value={this.state.showTillDatePicker}
+                                onValueChange={(val) => {
+                                    val
+                                        ? this.setState((prevState) => ({
+                                              showTillDatePicker: !this.state
+                                                  .showTillDatePicker,
+                                              entry: {
+                                                  ...prevState.entry,
+                                                  periodTill: new Date()
+                                              }
+                                          }))
+                                        : this.setState({
+                                              showTillDatePicker: !this.state
+                                                  .showTillDatePicker
+                                          });
                                 }}
                             />
-                        ) : null}
-                    </Body>
-                    <Right>
-                        <Switch
-                            value={this.state.showTillDatePicker}
-                            onValueChange={(val) => {
-                                val
-                                    ? this.setState((prevState) => ({
-                                          showTillDatePicker: !this.state
-                                              .showTillDatePicker,
-                                          entry: {
-                                              ...prevState.entry,
-                                              periodTill: new Date()
-                                          }
-                                      }))
-                                    : this.setState({
-                                          showTillDatePicker: !this.state
-                                              .showTillDatePicker
-                                      });
-                            }}
-                        />
-                    </Right>
-                </ListItem>
-            );
+                        </Right>
+                    </ListItem>
+                );
+            }
+        } catch (error) {
+            error_handler._handleError('_renderListDatePickerItem', error);
         }
     }
 
@@ -1195,94 +1313,95 @@ class CreateEditEntryScreen extends Component {
                         this.props.navigation.goBack();
                     }}
                 />
+
+                <FlatList
+                    data={options}
+                    keyExtractor={(item, index) => index.toString()}
+                    scrollEnabled={true}
+                    renderItem={({item}) => this._renderItem(item)}
+                    ListHeaderComponent={() => (
+                        <>
+                            {isLastMonth ? (
+                                <Card>
+                                    <CardItem firstlast>
+                                        <Body>
+                                            <Text note warning>
+                                                {
+                                                    'Dies ist der letze Monat des Eintrages, möchten Sie verlängern?'
+                                                }
+                                            </Text>
+                                        </Body>
+                                    </CardItem>
+                                </Card>
+                            ) : null}
+                        </>
+                    )}
+                    // ListFooterComponent={() => (
+                    //     <>
+                    //         <Title>Vorschau</Title>
+                    //         <ListItem
+                    //             style={{
+                    //                 marginLeft: 0,
+                    //                 backgroundColor: entry.badge
+                    //                     ? GlobalColors[entry.badge]
+                    //                     : undefined,
+                    //                 borderTopRightRadius: 15,
+                    //                 borderBottomRightRadius: 15,
+                    //                 marginRight: 10
+                    //             }}
+                    //             icon
+                    //         >
+                    //             <Left
+                    //                 style={{
+                    //                     marginLeft: 0,
+                    //                     marginRight: 5,
+                    //                     backgroundColor:
+                    //                         entry.fixedCosts == 'true' ||
+                    //                         entry.fixedCosts == true
+                    //                             ? GlobalColors.mainColor
+                    //                             : undefined,
+                    //                     borderTopRightRadius: 15,
+                    //                     borderBottomRightRadius: 15
+                    //                 }}
+                    //             >
+                    //                 <Icon
+                    //                     style={{
+                    //                         color:
+                    //                             entry.fixedCosts ==
+                    //                                 'true' ||
+                    //                             entry.fixedCosts == true
+                    //                                 ? GlobalColors.light
+                    //                                 : undefined
+                    //                     }}
+                    //                     light
+                    //                     name={
+                    //                         entry.categorie
+                    //                             ? entry.categorie.icon
+                    //                             : 'car'
+                    //                     }
+                    //                 ></Icon>
+                    //             </Left>
+                    //             <Body>
+                    //                 <Text>
+                    //                     {entry.description
+                    //                         ? entry.description
+                    //                         : 'Name'}
+                    //                 </Text>
+                    //             </Body>
+                    //             <Right>
+                    //                 <Text style={{color: '#333'}}>
+                    //                     {entry.amount
+                    //                         ? entry.amount +
+                    //                           ' ' +
+                    //                           strings('Currency')
+                    //                         : 50 + strings('Currency')}
+                    //                 </Text>
+                    //             </Right>
+                    //         </ListItem>
+                    //     </>
+                    // )}
+                />
                 <SafeAreaView style={{flex: 1}}>
-                    <FlatList
-                        data={options}
-                        keyExtractor={(item, index) => index.toString()}
-                        scrollEnabled={true}
-                        renderItem={({item}) => this._renderItem(item)}
-                        ListHeaderComponent={() => (
-                            <>
-                                {isLastMonth ? (
-                                    <Card>
-                                        <CardItem firstlast>
-                                            <Body>
-                                                <Text note warning>
-                                                    {
-                                                        'Dies ist der letze Monat des Eintrages, möchten Sie verlängern?'
-                                                    }
-                                                </Text>
-                                            </Body>
-                                        </CardItem>
-                                    </Card>
-                                ) : null}
-                            </>
-                        )}
-                        // ListFooterComponent={() => (
-                        //     <>
-                        //         <Title>Vorschau</Title>
-                        //         <ListItem
-                        //             style={{
-                        //                 marginLeft: 0,
-                        //                 backgroundColor: entry.badge
-                        //                     ? GlobalColors[entry.badge]
-                        //                     : undefined,
-                        //                 borderTopRightRadius: 15,
-                        //                 borderBottomRightRadius: 15,
-                        //                 marginRight: 10
-                        //             }}
-                        //             icon
-                        //         >
-                        //             <Left
-                        //                 style={{
-                        //                     marginLeft: 0,
-                        //                     marginRight: 5,
-                        //                     backgroundColor:
-                        //                         entry.fixedCosts == 'true' ||
-                        //                         entry.fixedCosts == true
-                        //                             ? GlobalColors.mainColor
-                        //                             : undefined,
-                        //                     borderTopRightRadius: 15,
-                        //                     borderBottomRightRadius: 15
-                        //                 }}
-                        //             >
-                        //                 <Icon
-                        //                     style={{
-                        //                         color:
-                        //                             entry.fixedCosts ==
-                        //                                 'true' ||
-                        //                             entry.fixedCosts == true
-                        //                                 ? GlobalColors.light
-                        //                                 : undefined
-                        //                     }}
-                        //                     light
-                        //                     name={
-                        //                         entry.categorie
-                        //                             ? entry.categorie.icon
-                        //                             : 'car'
-                        //                     }
-                        //                 ></Icon>
-                        //             </Left>
-                        //             <Body>
-                        //                 <Text>
-                        //                     {entry.description
-                        //                         ? entry.description
-                        //                         : 'Name'}
-                        //                 </Text>
-                        //             </Body>
-                        //             <Right>
-                        //                 <Text style={{color: '#333'}}>
-                        //                     {entry.amount
-                        //                         ? entry.amount +
-                        //                           ' ' +
-                        //                           strings('Currency')
-                        //                         : 50 + strings('Currency')}
-                        //                 </Text>
-                        //             </Right>
-                        //         </ListItem>
-                        //     </>
-                        // )}
-                    />
                     {this.state.entry && this.state.entry.id ? (
                         <Button
                             style={{marginVertical: 20}}

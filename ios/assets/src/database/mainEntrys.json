@@ -1,0 +1,508 @@
+[
+    {
+        "amount": "2330",
+        "categorie": {
+            "name": "Salary",
+            "icon": "cash",
+            "typ": "incoming"
+        },
+        "interval": {
+            "key": "1"
+        },
+        "description": "Gehalt",
+        "fixedCosts": "true",
+        "periodFrom": "2019-12-31T23:00:00.000Z",
+        "periodTill": "2030-12-31T23:00:00.000Z",
+        "badge": ""
+    },
+    {
+        "amount": "690",
+        "categorie": {
+            "name": "Household",
+            "typ": "outgoing"
+        },
+        "interval": {
+            "key": "1"
+        },
+        "description": "Miete",
+        "fixedCosts": "true",
+        "periodFrom": "2019-12-31T23:00:00.000Z",
+        "periodTill": "2030-12-31T23:00:00.000Z",
+        "badge": "listBadgeBlue"
+    },
+    {
+        "amount": "50",
+        "categorie": {
+            "id": "5f9ac925Vd2akWqC000GOrwY",
+            "name": "Household",
+            "icon": "home",
+            "typ": "outgoing"
+        },
+        "interval": {
+            "id": "5f9ac925ut3yt3OH001UgVAh",
+            "key": "1",
+            "name": "Monthly"
+        },
+        "description": "Strom",
+        "fixedCosts": "true",
+        "periodFrom": "2019-12-31T23:00:00.000Z",
+        "periodTill": "2020-09-29T22:00:00.000Z",
+        "badge": "listBadgeBlue"
+    },
+    {
+        "amount": "40",
+        "categorie": {
+            "id": "5f9ac925Vd2akWqC000GOrwY",
+            "name": "Household",
+            "icon": "home",
+            "typ": "outgoing"
+        },
+        "interval": {
+            "id": "5f9ac925ut3yt3OH001UgVAh",
+            "key": "1",
+            "name": "Monthly"
+        },
+        "description": "Strom",
+        "fixedCosts": "true",
+        "periodFrom": "2020-09-30T22:00:00.000Z",
+        "periodTill": "2021-09-30T22:00:00.000Z",
+        "badge": "listBadgeBlue"
+    },
+    {
+        "amount": "30",
+        "categorie": {
+            "id": "5f9ac925Vd2akWqC0041NJQ4",
+            "name": "Entertainment",
+            "icon": "tv",
+            "typ": "outgoing"
+        },
+        "interval": {
+            "id": "5f9ac925ut3yt3OH001UgVAh",
+            "key": "1",
+            "name": "Monthly"
+        },
+        "description": "Internet",
+        "fixedCosts": "true",
+        "periodFrom": "2019-12-31T23:00:00.000Z",
+        "periodTill": "2020-02-28T23:00:00.000Z",
+        "badge": "listBadgeBlue"
+    },
+    {
+        "amount": "50",
+        "categorie": {
+            "id": "5f9ac925Vd2akWqC0041NJQ4",
+            "name": "Entertainment",
+            "icon": "tv",
+            "typ": "outgoing"
+        },
+        "interval": {
+            "id": "5f9ac925ut3yt3OH001UgVAh",
+            "key": "1",
+            "name": "Monthly"
+        },
+        "description": "Internet",
+        "fixedCosts": "true",
+        "periodFrom": "2020-02-29T23:00:00.000Z",
+        "periodTill": "2021-12-28T23:00:00.000Z",
+        "badge": "listBadgeBlue"
+    },
+    {
+        "amount": "15",
+        "categorie": {
+            "id": "5f9ac925Vd2akWqC0041NJQ4",
+            "name": "Entertainment",
+            "icon": "tv",
+            "typ": "outgoing"
+        },
+        "interval": {
+            "id": "5f9ac925ut3yt3OH001UgVAh",
+            "key": "1",
+            "name": "Monthly"
+        },
+        "description": "Handy",
+        "fixedCosts": "true",
+        "periodFrom": "2019-12-31T23:00:00.000Z",
+        "periodTill": "2030-12-31T23:00:00.000Z",
+        "badge": "listBadgeGreen"
+    },
+    {
+        "amount": "10",
+        "categorie": {
+            "id": "5f9ac925Vd2akWqC0041NJQ4",
+            "name": "Entertainment",
+            "icon": "tv",
+            "typ": "outgoing"
+        },
+        "interval": {
+            "id": "5f9ac925ut3yt3OH001UgVAh",
+            "key": "1",
+            "name": "Monthly"
+        },
+        "description": "Amazon",
+        "fixedCosts": "true",
+        "periodFrom": "2019-12-31T23:00:00.000Z",
+        "periodTill": "2030-12-31T23:00:00.000Z",
+        "badge": "listBadgeGreen"
+    },
+    {
+        "amount": "15",
+        "categorie": {
+            "id": "5f9ac925Vd2akWqC0041NJQ4",
+            "name": "Entertainment",
+            "icon": "tv",
+            "typ": "outgoing"
+        },
+        "interval": {
+            "id": "5f9ac925ut3yt3OH001UgVAh",
+            "key": "1",
+            "name": "Monthly"
+        },
+        "description": "Netflix",
+        "fixedCosts": "true",
+        "periodFrom": "2019-12-31T23:00:00.000Z",
+        "periodTill": "2030-12-31T23:00:00.000Z",
+        "badge": "listBadgeGreen"
+    },
+    {
+        "amount": "10",
+        "categorie": {
+            "id": "5f9ac925Vd2akWqC0041NJQ4",
+            "name": "Entertainment",
+            "icon": "tv",
+            "typ": "outgoing"
+        },
+        "interval": {
+            "id": "5f9ac925ut3yt3OH001UgVAh",
+            "key": "1",
+            "name": "Monthly"
+        },
+        "description": "Apple Musik ",
+        "fixedCosts": "true",
+        "periodFrom": "2019-12-31T23:00:00.000Z",
+        "periodTill": "2030-12-31T23:00:00.000Z",
+        "badge": "listBadgeGreen"
+    },
+    {
+        "amount": "6",
+        "categorie": {
+            "id": "5f9ac925Vd2akWqC018JoYtg",
+            "name": "Insurance",
+            "icon": "briefcase",
+            "typ": "outgoing"
+        },
+        "interval": {
+            "id": "5f9ac925ut3yt3OH001UgVAh",
+            "key": "1",
+            "name": "Monthly"
+        },
+        "description": "Gothar ",
+        "fixedCosts": "true",
+        "periodFrom": "2019-12-31T23:00:00.000Z",
+        "periodTill": "2030-12-31T23:00:00.000Z",
+        "badge": "listBadgeBlue"
+    },
+    {
+        "amount": "55",
+        "categorie": {
+            "id": "5f9ac925Vd2akWqC017F26Xw",
+            "name": "Bills",
+            "icon": "cart",
+            "typ": "outgoing"
+        },
+        "interval": {
+            "id": "5f9ac925ut3yt3OH0030f9R0",
+            "key": "3",
+            "name": "Every3Months"
+        },
+        "description": "GEZ ",
+        "fixedCosts": "true",
+        "periodFrom": "2019-12-31T23:00:00.000Z",
+        "periodTill": "2030-12-31T23:00:00.000Z",
+        "badge": "listBadgeBlue"
+    },
+    {
+        "amount": "22",
+        "categorie": {
+            "id": "5f9ac925Vd2akWqC018JoYtg",
+            "name": "Insurance",
+            "icon": "briefcase",
+            "typ": "outgoing"
+        },
+        "interval": {
+            "id": "5f9ac925ut3yt3OH005NLD87",
+            "key": "12",
+            "name": "Yearly"
+        },
+        "description": "Hausrat (Adam Riese)",
+        "fixedCosts": "true",
+        "periodFrom": "2019-12-31T23:00:00.000Z",
+        "periodTill": "2030-12-31T23:00:00.000Z",
+        "badge": "listBadgeBlue"
+    },
+    {
+        "amount": "24",
+        "categorie": {
+            "id": "5f9ac925Vd2akWqC0121PrSp",
+            "name": "Family_Friends",
+            "icon": "people",
+            "typ": "outgoing"
+        },
+        "interval": {
+            "id": "5f9ac925ut3yt3OH001UgVAh",
+            "key": "1",
+            "name": "Monthly"
+        },
+        "description": "Neffen",
+        "fixedCosts": "true",
+        "periodFrom": "2019-12-31T23:00:00.000Z",
+        "periodTill": "2029-11-22T23:00:00.000Z",
+        "badge": "listBadgeYellow"
+    },
+    {
+        "amount": "300",
+        "categorie": {
+            "id": "5f9ac925Vd2akWqC017F26Xw",
+            "name": "Bills",
+            "icon": "cart",
+            "typ": "outgoing"
+        },
+        "interval": {
+            "id": "5f9ac925ut3yt3OH001UgVAh",
+            "key": "1",
+            "name": "Monthly"
+        },
+        "description": "Kreditkarte",
+        "fixedCosts": "true",
+        "periodFrom": "2019-12-31T23:00:00.000Z",
+        "periodTill": "2022-03-30T22:00:00.000Z",
+        "badge": "listBadgeRed"
+    },
+    {
+        "amount": "80",
+        "categorie": {
+            "id": "5f9ac925Vd2akWqC000GOrwY",
+            "name": "Household",
+            "icon": "home",
+            "typ": "outgoing"
+        },
+        "interval": {
+            "id": "5f9ac925ut3yt3OH005NLD87",
+            "key": "12",
+            "name": "Yearly"
+        },
+        "description": "Mieterschutzbund ",
+        "fixedCosts": "true",
+        "periodFrom": "2019-12-31T23:00:00.000Z",
+        "periodTill": "2022-03-30T22:00:00.000Z",
+        "badge": "listBadgeBlue"
+    },
+    {
+        "amount": "65",
+        "categorie": {
+            "id": "5f9ac925Vd2akWqC000GOrwY",
+            "name": "Household",
+            "icon": "home",
+            "typ": "outgoing"
+        },
+        "interval": {
+            "id": "5f9ac925ut3yt3OH005NLD87",
+            "key": "12",
+            "name": "Yearly"
+        },
+        "description": "Müllgebühren",
+        "fixedCosts": "true",
+        "periodFrom": "2019-12-31T23:00:00.000Z",
+        "periodTill": "2022-03-30T22:00:00.000Z",
+        "badge": "listBadgeBlue"
+    },
+    {
+        "amount": "300",
+        "categorie": {
+            "id": "5f9ac925Vd2akWqC001B4tNf",
+            "name": "Food",
+            "icon": "pizza",
+            "typ": "outgoing"
+        },
+        "interval": {
+            "id": "5f9ac925ut3yt3OH001UgVAh",
+            "key": "1",
+            "name": "Monthly"
+        },
+        "description": "Essen",
+        "fixedCosts": "false",
+        "periodFrom": "2019-12-31T23:00:00.000Z",
+        "periodTill": "2022-03-30T22:00:00.000Z",
+        "badge": "listBadgeGreen"
+    },
+    {
+        "amount": "150",
+        "categorie": {
+            "id": "5f9ac925Vd2akWqC006E3Tdx",
+            "name": "Freetime",
+            "icon": "game-controller",
+            "typ": "outgoing"
+        },
+        "interval": {
+            "id": "5f9ac925ut3yt3OH001UgVAh",
+            "key": "1",
+            "name": "Monthly"
+        },
+        "description": "Ausgehen",
+        "fixedCosts": "false",
+        "periodFrom": "2019-12-31T23:00:00.000Z",
+        "periodTill": "2022-03-30T22:00:00.000Z",
+        "badge": "listBadgeGreen"
+    },
+    {
+        "amount": "50",
+        "categorie": {
+            "id": "5f9ac925Vd2akWqC020ERwYM",
+            "name": "Others",
+            "icon": "star",
+            "typ": "outgoing"
+        },
+        "interval": {
+            "id": "5f9ac925ut3yt3OH001UgVAh",
+            "key": "1",
+            "name": "Monthly"
+        },
+        "description": "Sonstiges",
+        "fixedCosts": "false",
+        "periodFrom": "2019-12-31T23:00:00.000Z",
+        "periodTill": "2022-03-30T22:00:00.000Z",
+        "badge": ""
+    },
+    {
+        "amount": "100",
+        "categorie": {
+            "id": "5f9ac925Vd2akWqC016QCd9K",
+            "name": "Saving",
+            "icon": "trophy",
+            "typ": "outgoing"
+        },
+        "interval": {
+            "id": "5f9ac925ut3yt3OH001UgVAh",
+            "key": "1",
+            "name": "Monthly"
+        },
+        "description": "Rücklage",
+        "fixedCosts": "true",
+        "periodFrom": "2020-03-31T22:00:00.000Z",
+        "periodTill": "2025-04-02T22:00:00.000Z",
+        "badge": "listBadgeRed"
+    },
+    {
+        "amount": "100",
+        "categorie": {
+            "id": "5f9ac925Vd2akWqC01343C2x",
+            "name": "Healthcare",
+            "icon": "medical",
+            "typ": "outgoing"
+        },
+        "interval": {
+            "id": "5f9ac925ut3yt3OH000n9Y4r",
+            "key": "0",
+            "name": "Single"
+        },
+        "description": "Arzt",
+        "fixedCosts": "false",
+        "periodFrom": "2020-10-31T23:00:00.000Z",
+        "periodTill": "2020-10-31T23:00:00.000Z",
+        "badge": ""
+    },
+    {
+        "amount": "50",
+        "categorie": {
+            "id": "5f9ac925Vd2akWqC0121PrSp",
+            "name": "Family_Friends",
+            "icon": "people",
+            "typ": "outgoing"
+        },
+        "interval": {
+            "id": "5f9ac925ut3yt3OH000n9Y4r",
+            "key": "0",
+            "name": "Single"
+        },
+        "description": "Stuhl",
+        "fixedCosts": "false",
+        "periodFrom": "2020-10-31T23:00:00.000Z",
+        "periodTill": "2020-10-31T23:00:00.000Z",
+        "badge": ""
+    },
+    {
+        "amount": "100",
+        "categorie": {
+            "id": "5f9ac925Vd2akWqC0121PrSp",
+            "name": "Gifts",
+            "icon": "gift",
+            "typ": "outgoing"
+        },
+        "interval": {
+            "id": "5f9ac925ut3yt3OH000n9Y4r",
+            "key": "0",
+            "name": "Single"
+        },
+        "description": "Weihnachten",
+        "fixedCosts": "false",
+        "periodFrom": "2020-10-31T23:00:00.000Z",
+        "periodTill": "2020-10-31T23:00:00.000Z",
+        "badge": ""
+    },
+    {
+        "amount": "150",
+        "categorie": {
+            "id": "5f9ac925Vd2akWqC0121PrSp",
+            "name": "Gifts",
+            "icon": "gift",
+            "typ": "outgoing"
+        },
+        "interval": {
+            "id": "5f9ac925ut3yt3OH000n9Y4r",
+            "key": "0",
+            "name": "Single"
+        },
+        "description": "Weihnachten",
+        "fixedCosts": "false",
+        "periodFrom": "2020-11-30T23:00:00.000Z",
+        "periodTill": "2020-11-30T23:00:00.000Z",
+        "badge": ""
+    },
+    {
+        "amount": "200",
+        "categorie": {
+            "id": "5f9ac925Vd2akWqC016QCd9K",
+            "name": "Saving",
+            "icon": "trophy",
+            "typ": "outgoing"
+        },
+        "interval": {
+            "id": "5f9ac925ut3yt3OH001UgVAh",
+            "key": "1",
+            "name": "Monthly"
+        },
+        "description": "N26",
+        "fixedCosts": "false",
+        "periodFrom": "2020-10-31T23:00:00.000Z",
+        "periodTill": "2030-11-02T23:00:00.000Z",
+        "badge": "listBadgeYellow"
+    },
+    {
+        "amount": "75",
+        "categorie": {
+            "id": "5fa277b74Vs03v1C007c5yn3",
+            "name": "Tickets",
+            "icon": "train",
+            "typ": "outgoing"
+        },
+        "interval": {
+            "id": "5fa277b7NvvYI5mH000IFzGM",
+            "key": "1",
+            "name": "Monthly"
+        },
+        "description": "Fahrkarte",
+        "fixedCosts": "true",
+        "periodFrom": "2019-12-31T23:00:00.000Z",
+        "periodTill": "2029-12-31T23:00:00.000Z",
+        "badge": "listBadgeBlue"
+    }
+]

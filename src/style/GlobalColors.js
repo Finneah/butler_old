@@ -21,10 +21,10 @@ const GlobalColors = {
     info: '#3498db',
     optionalSaveMainEntryCardBG: 'rgba(241,196,15,0.57)',
     saveMainEntryCardBG: 'rgba(52,152,219,0.57)',
-    listBadgeBlue: 'rgba(146,200,226,0.5)',
-    listBadgeGreen: 'rgba(113,207,121,0.5)',
-    listBadgeRed: 'rgba(227,114,104,0.5)',
-    listBadgeYellow: 'rgba(223,231,68,0.5)'
+    listBadgeBlue: 'rgba(146,200,226,0.2)',
+    listBadgeGreen: 'rgba(113,207,121,0.2)',
+    listBadgeRed: 'rgba(227,114,104,0.2)',
+    listBadgeYellow: 'rgba(223,231,68,0.2)'
 };
 
 export default GlobalColors;

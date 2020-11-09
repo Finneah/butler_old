@@ -38,7 +38,8 @@ import {EntryModel} from '../database/Models/EntryModel';
 import {MainEntryModel} from '../database/Models/MainEntryModel';
 import {CategorieModel} from '../database/Models/CategorieModel';
 import {IntervalModel} from '../database/Models/IntervalModel';
-
+import MonthDetailScreen from './MonthDetailScreen';
+import Modal from 'react-native-modal-patch';
 let entryModel = new EntryModel();
 let mainEntryModel = new MainEntryModel();
 let categorieModel = new CategorieModel();
@@ -235,7 +236,7 @@ class OverviewScreen extends Component {
     }
 
     render() {
-        const {sections, selectedYear} = this.state;
+        const {sections, selectedYear, showModalDetails} = this.state;
 
         return (
             <Container>
@@ -309,6 +310,7 @@ class OverviewScreen extends Component {
 
                 <SafeAreaView style={{flex: 1}}>
                     {this.state.isLoading ? <ActivityIndicator /> : null}
+
                     <View
                         style={{
                             flexDirection: 'row',
@@ -420,17 +422,6 @@ class OverviewScreen extends Component {
                                     </Right>
                                 </ListItem>
                                 <CardItem footer last>
-                                    <Left>
-                                        <Button
-                                            secondary
-                                            transparent
-                                            iconLeft
-                                            onPress={() => {}}
-                                        >
-                                            <Icon name="chevron-down"></Icon>
-                                            <Text>{strings('More')}</Text>
-                                        </Button>
-                                    </Left>
                                     <Body></Body>
                                     <Right>
                                         <Button
@@ -450,7 +441,7 @@ class OverviewScreen extends Component {
                                                 );
                                             }}
                                         >
-                                            <Text>{'Edit'}</Text>
+                                            <Text>{strings('details')}</Text>
                                             <Icon name="chevron-forward"></Icon>
                                         </Button>
                                     </Right>
@@ -461,24 +452,7 @@ class OverviewScreen extends Component {
                             <Card>
                                 <CardItem firstlast>
                                     <Body>
-                                        <Text>
-                                            {
-                                                'Es sind noch keine Einträge vorhanden'
-                                            }
-                                        </Text>
-                                    </Body>
-                                </CardItem>
-                            </Card>
-                        )}
-                        ListFooterComponent={() => (
-                            <Card>
-                                <CardItem firstlast>
-                                    <Body>
-                                        <Text>
-                                            {
-                                                'Es sind noch keine Einträge vorhanden'
-                                            }
-                                        </Text>
+                                        <Text>{strings('noEntrysYet')}</Text>
                                     </Body>
                                 </CardItem>
                             </Card>
@@ -490,24 +464,3 @@ class OverviewScreen extends Component {
     }
 }
 export default OverviewScreen;
-const styles = StyleSheet.create({
-    mainTitleContainer: {
-        justifyContent: 'center',
-        alignItems: 'center',
-        padding: 20
-    },
-    mainTitleText: {
-        textAlign: 'center'
-    },
-    container: {flex: 1, padding: 20, paddingTop: 30},
-    dateTimeContainer: {
-        zIndex: 1,
-        height: 100,
-        width: '100%'
-    },
-    wrapper: {flexDirection: 'row', margin: 10},
-    titleCol: {flex: 1},
-    titleText: {fontSize: 14, fontWeight: 'bold', textAlign: 'left'},
-    row: {height: 20},
-    text: {textAlign: 'center'}
-});

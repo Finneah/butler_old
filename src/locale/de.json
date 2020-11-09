@@ -76,5 +76,9 @@
     "today": "Heute",
     "travels": "Urlaub",
     "work": "Arbeit",
-    "yearly": "jährlich"
+    "yearly": "jährlich",
+    "noEntrysYet": "Es sind noch keine Einträge vorhanden",
+    "thisMonth": "Nur für {{MONTH}} ändern",
+    "allEntrys": "Alle Eiträge ändern",
+    "nothingChanged": "Ich habe nichts gespeichert, da die Eingaben identisch sind."
 }

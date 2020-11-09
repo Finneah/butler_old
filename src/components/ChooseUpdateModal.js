@@ -4,17 +4,16 @@ import {
     Card,
     CardItem,
     Container,
-    Content,
     Icon,
     Left,
     ListItem,
     Right,
-    Segment,
     Text,
-    Title
+    Title,
+    View
 } from 'native-base';
 import React, {Component} from 'react';
-import {Alert, Dimensions, SafeAreaView, StyleSheet, View} from 'react-native';
+import {SafeAreaView, StyleSheet} from 'react-native';
 import {FlatList} from 'react-native-gesture-handler';
 import {strings} from '../i18n';
 import GlobalColors from '../style/GlobalColors';
@@ -64,7 +63,7 @@ class ChooseUpdateModal extends Component {
         return (
             <Modal
                 animationType="slide"
-                presentationStyle="formSheet" // <-- Swipe down/dismiss works now!
+                presentationStyle="pageSheet" // <-- Swipe down/dismiss works now!
                 visible={showModalChooseUpdate ? showModalChooseUpdate : false}
                 onDismiss={() => this.props.toggleShowChooseUpdateModal(false)} // <-- This gets called all the time
             >
@@ -83,7 +82,7 @@ class ChooseUpdateModal extends Component {
                                     </CardItem>
                                 </Card>
                             )}
-                            renderItem={({item, index}) => (
+                            renderItem={({item}) => (
                                 <Card transparent>
                                     <CardItem
                                         header
@@ -233,34 +232,39 @@ class ChooseUpdateModal extends Component {
                             )}
                             keyExtractor={(item, index) => index.toString()}
                         />
-
-                        <Button
-                            rounded
-                            centered
-                            secondary
-                            onPress={() => {
-                                this.props.onSaveHandler();
+                        <View
+                            style={{
+                                flexDirection: 'row',
+                                justifyContent: 'space-evenly',
+                                padding: 20
                             }}
                         >
-                            <Text>{'Do it'}</Text>
-                        </Button>
+                            <Button
+                                secondary
+                                transparent
+                                onPress={() => {
+                                    this.props.toggleShowChooseUpdateModal(
+                                        false
+                                    );
+                                }}
+                            >
+                                <Text>{strings('cancel')}</Text>
+                            </Button>
+                            <Button
+                                rounded
+                                secondary
+                                onPress={() => {
+                                    this.props.onSaveHandler();
+                                }}
+                            >
+                                <Text>{strings('apply')}</Text>
+                            </Button>
+                        </View>
                     </SafeAreaView>
                 </Container>
             </Modal>
         );
     }
 }
-
-const styles = StyleSheet.create({
-    textStyle: {
-        color: 'white',
-        fontWeight: 'bold',
-        textAlign: 'center'
-    },
-    modalText: {
-        marginBottom: 15,
-        textAlign: 'center'
-    }
-});
 
 export default ChooseUpdateModal;
