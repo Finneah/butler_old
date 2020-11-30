@@ -117,7 +117,7 @@ export default {
     },
 
     // Card
-    cardDefaultBg: '#fff',
+    cardDefaultBg: '#333',
     get cardBorderColor() {
         return this.brandSecondary;
     },
@@ -141,13 +141,13 @@ export default {
 
     // Color
     brandPrimary: platform === PLATFORM.IOS ? '#333' : '#333',
-    brandPrimaryLight: '#808080',
+    brandPrimaryLight: '#BFBFBF',
     brandPrimaryDark: '#000',
     brandLightGrey: '#f3f3f3',
 
-    brandSecondary: '#0F5B36', //FFEBCD
-    brandSecondaryLight: '#A3CCAD',
-    brandSecondaryDark: '#526657',
+    brandSecondary: '#596f6e', //FFEBCD
+    brandSecondaryLight: 'rgba(61,83,78,0.50)',
+    brandSecondaryDark: '#2B3B37',
 
     brandInfo: '#3498db',
     brandSuccess: '#2ecc71',
@@ -158,9 +158,9 @@ export default {
 
     // custom Colors
     light: '#fefefe',
-    lightGrey: '#E6E6E6',
+    lightGrey: '#f3f3f3',
     middleGrey: '#BFBFBF',
-    grey: '#808080',
+    dark: '#404040',
     butler: '#333',
     warning: '#e74c3c',
     warningLight: '#e67e22',
@@ -309,7 +309,7 @@ export default {
 
     // Tab
     tabBarDisabledTextColor: '#BDBDBD',
-    tabDefaultBg: platform === PLATFORM.IOS ? '#F8F8F8' : '#3F51B5',
+    tabDefaultBg: platform === PLATFORM.IOS ? '#f3f3f3' : '#3F51B5',
     topTabBarTextColor: platform === PLATFORM.IOS ? '#6b6b6b' : '#b3c7f9',
     topTabBarActiveTextColor: platform === PLATFORM.IOS ? '#007aff' : '#fff',
     topTabBarBorderColor: platform === PLATFORM.IOS ? '#a7a6ab' : '#fff',

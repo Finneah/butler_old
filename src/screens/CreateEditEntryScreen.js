@@ -14,11 +14,10 @@ import {
     Switch,
     Text,
     Title,
-    Toast,
-    View
+    Toast
 } from 'native-base';
 import React, {Component} from 'react';
-import {Alert, FlatList} from 'react-native';
+import {Alert, FlatList, ImageBackground, StyleSheet} from 'react-native';
 import {SafeAreaView} from 'react-native-safe-area-context';
 import _ from 'lodash';
 import ChooseUpdateModal from '../components/ChooseUpdateModal';
@@ -37,6 +36,8 @@ import Error_Handler from '../Error_Handler';
 import Helper from '../Helper';
 import {strings} from '../i18n';
 import GlobalColors from '../style/GlobalColors';
+import GlobalStyles from '../style/GlobalStyles';
+import background from './../components/bg.png';
 
 let entryModel = new EntryModel();
 let mainEntryModel = new MainEntryModel();
@@ -1056,7 +1057,7 @@ class CreateEditEntryScreen extends Component {
     }
 
     _renderListSwitchItem(item, entry) {
-        var onValueChange = (val) => {};
+        var onValueChange = () => {};
         var value = '';
         var title = '';
         try {
@@ -1118,7 +1119,7 @@ class CreateEditEntryScreen extends Component {
     _renderListActionSheetItem(item, entry) {
         var title = '';
         var BUTTONS = [];
-        var onPress = (buttonIndex) => {};
+        var onPress = () => {};
         var rightText = false;
         try {
             if (item.title == strings('interval')) {
@@ -1251,197 +1252,234 @@ class CreateEditEntryScreen extends Component {
 
     render() {
         const {options, entry, isLastMonth} = this.state;
+        const image = background;
+
+        const styles = StyleSheet.create({
+            image: {
+                flex: 1,
+                resizeMode: 'cover',
+                justifyContent: 'center'
+            }
+        });
+
         return (
             <Container>
-                <Header>
-                    <Left>
-                        <Button
-                            primary
-                            transparent
-                            onPress={() => {
-                                this.props.navigation.goBack();
-                            }}
-                        >
-                            <Icon name="chevron-back" />
-                        </Button>
-                    </Left>
-                    <Body>
-                        <Title>
-                            {entry && entry.id
-                                ? strings('EditEntry')
-                                : strings('CreateEntry')}
-                        </Title>
-                    </Body>
-                    <Right>
-                        <Button
-                            secondary
-                            transparent
-                            onPress={() => {
-                                this._insertTestEntrys();
-                            }}
-                        >
-                            <Icon name="bug" />
-                        </Button>
-                        <Button
-                            secondary
-                            disabled={this.state.disabled}
-                            transparent
-                            onPress={() => {
-                                this._insertOrUpdateEntry();
-                            }}
-                        >
-                            <Icon name="save" />
-                        </Button>
-                    </Right>
-                </Header>
-                <ChooseUpdateModal
-                    showModalChooseUpdate={this.state.showModalChooseUpdate}
-                    updateMainEntryArray={this.state.updateMainEntryArray}
-                    onSetData={(data) => {
-                        this.setState({updateMainEntryArray: data});
-                    }}
-                    toggleShowChooseUpdateModal={(visible) => {
-                        this.setState({
-                            showModalChooseUpdate:
-                                visible != undefined
-                                    ? visible
-                                    : !this.state.showModalChooseUpdate
-                        });
-                    }}
-                    onSaveHandler={() => {
-                        this._insertAndUpdateSubmittedEntrys();
-                        this.props.navigation.goBack();
-                    }}
-                />
-
-                <FlatList
-                    data={options}
-                    keyExtractor={(item, index) => index.toString()}
-                    scrollEnabled={true}
-                    renderItem={({item}) => this._renderItem(item)}
-                    ListHeaderComponent={() => (
-                        <>
-                            {isLastMonth ? (
-                                <Card>
-                                    <CardItem firstlast>
-                                        <Body>
-                                            <Text note warning>
-                                                {
-                                                    'Dies ist der letze Monat des Eintrages, möchten Sie verlängern?'
-                                                }
-                                            </Text>
-                                        </Body>
-                                    </CardItem>
-                                </Card>
-                            ) : null}
-                        </>
-                    )}
-                    // ListFooterComponent={() => (
-                    //     <>
-                    //         <Title>Vorschau</Title>
-                    //         <ListItem
-                    //             style={{
-                    //                 marginLeft: 0,
-                    //                 backgroundColor: entry.badge
-                    //                     ? GlobalColors[entry.badge]
-                    //                     : undefined,
-                    //                 borderTopRightRadius: 15,
-                    //                 borderBottomRightRadius: 15,
-                    //                 marginRight: 10
-                    //             }}
-                    //             icon
-                    //         >
-                    //             <Left
-                    //                 style={{
-                    //                     marginLeft: 0,
-                    //                     marginRight: 5,
-                    //                     backgroundColor:
-                    //                         entry.fixedCosts == 'true' ||
-                    //                         entry.fixedCosts == true
-                    //                             ? GlobalColors.mainColor
-                    //                             : undefined,
-                    //                     borderTopRightRadius: 15,
-                    //                     borderBottomRightRadius: 15
-                    //                 }}
-                    //             >
-                    //                 <Icon
-                    //                     style={{
-                    //                         color:
-                    //                             entry.fixedCosts ==
-                    //                                 'true' ||
-                    //                             entry.fixedCosts == true
-                    //                                 ? GlobalColors.light
-                    //                                 : undefined
-                    //                     }}
-                    //                     light
-                    //                     name={
-                    //                         entry.categorie
-                    //                             ? entry.categorie.icon
-                    //                             : 'car'
-                    //                     }
-                    //                 ></Icon>
-                    //             </Left>
-                    //             <Body>
-                    //                 <Text>
-                    //                     {entry.description
-                    //                         ? entry.description
-                    //                         : 'Name'}
-                    //                 </Text>
-                    //             </Body>
-                    //             <Right>
-                    //                 <Text style={{color: '#333'}}>
-                    //                     {entry.amount
-                    //                         ? entry.amount +
-                    //                           ' ' +
-                    //                           strings('Currency')
-                    //                         : 50 + strings('Currency')}
-                    //                 </Text>
-                    //             </Right>
-                    //         </ListItem>
-                    //     </>
-                    // )}
-                />
-                <SafeAreaView style={{flex: 1}}>
-                    {this.state.entry && this.state.entry.id ? (
-                        <Button
-                            style={{marginVertical: 20}}
-                            warning
-                            iconLeft
-                            transparent
-                            centered
-                            onPress={() => {
-                                Alert.alert(
-                                    strings('AskDeleteSerie'),
-                                    strings('DeleteEntryOrSerie'),
-                                    [
+                <ImageBackground source={image} style={styles.image}>
+                    <Header
+                        transparent
+                        style={{marginBottom: 10, paddingBottom: 10}}
+                    >
+                        <Left>
+                            <Button
+                                style={[
+                                    GlobalStyles.headerLeftButton,
+                                    {position: 'relative', left: 5}
+                                ]}
+                                primary
+                                transparent
+                                onPress={() => {
+                                    this.props.navigation.goBack();
+                                }}
+                            >
+                                <Icon name="chevron-back" />
+                            </Button>
+                        </Left>
+                        <Body>
+                            <Title light>
+                                {entry && entry.id
+                                    ? strings('EditEntry')
+                                    : strings('CreateEntry')}
+                            </Title>
+                        </Body>
+                        <Right>
+                            <Button
+                                secondary
+                                transparent
+                                onPress={() => {
+                                    this._insertTestEntrys();
+                                }}
+                            >
+                                <Icon name="bug" />
+                            </Button>
+                            <Button
+                                disabled={this.state.disabled}
+                                large
+                                style={[
+                                    GlobalStyles.headerRightButton,
+                                    {
+                                        position: 'relative',
+                                        top: 10,
+                                        opacity: this.state.disabled ? 1 : 1
+                                    }
+                                ]}
+                                rounded
+                                onPress={() => {
+                                    this._insertOrUpdateEntry();
+                                }}
+                            >
+                                <Icon
+                                    style={[
+                                        GlobalStyles.headerRightButtonIcon,
                                         {
-                                            text: strings('Cancel'),
-                                            onPress: () => {},
-                                            style: 'cancel'
-                                        },
-                                        {
-                                            text: strings('DeleteEntry'),
-                                            onPress: () => {
-                                                this._deleteEntry();
-                                            },
-
-                                            style: 'default'
-                                        },
-                                        {
-                                            text: strings('DeleteSerie'),
-                                            style: 'destructive',
-                                            onPress: () =>
-                                                this._deleteMainEntryAndEntrys()
+                                            opacity: this.state.disabled
+                                                ? 0.5
+                                                : 1
                                         }
-                                    ]
-                                );
-                            }}
-                        >
-                            <Icon name="trash"></Icon>
-                            <Text>{strings('Delete')}</Text>
-                        </Button>
-                    ) : null}
-                </SafeAreaView>
+                                    ]}
+                                    name="save"
+                                />
+                            </Button>
+                        </Right>
+                    </Header>
+                    <ChooseUpdateModal
+                        showModalChooseUpdate={this.state.showModalChooseUpdate}
+                        updateMainEntryArray={this.state.updateMainEntryArray}
+                        onSetData={(data) => {
+                            this.setState({updateMainEntryArray: data});
+                        }}
+                        toggleShowChooseUpdateModal={(visible) => {
+                            this.setState({
+                                showModalChooseUpdate:
+                                    visible != undefined
+                                        ? visible
+                                        : !this.state.showModalChooseUpdate
+                            });
+                        }}
+                        onSaveHandler={() => {
+                            this._insertAndUpdateSubmittedEntrys();
+                            this.props.navigation.goBack();
+                        }}
+                    />
+
+                    <FlatList
+                        data={options}
+                        keyExtractor={(item, index) => index.toString()}
+                        scrollEnabled={true}
+                        renderItem={({item}) => this._renderItem(item)}
+                        ListHeaderComponent={() => (
+                            <>
+                                {isLastMonth ? (
+                                    <Card>
+                                        <CardItem firstlast>
+                                            <Body>
+                                                <Text note warning>
+                                                    {
+                                                        'Dies ist der letze Monat des Eintrages, möchten Sie verlängern?'
+                                                    }
+                                                </Text>
+                                            </Body>
+                                        </CardItem>
+                                    </Card>
+                                ) : null}
+                            </>
+                        )}
+                        // ListFooterComponent={() => (
+                        //     <>
+                        //         <Title>Vorschau</Title>
+                        //         <ListItem
+                        //             style={{
+                        //                 marginLeft: 0,
+                        //                 backgroundColor: entry.badge
+                        //                     ? GlobalColors[entry.badge]
+                        //                     : undefined,
+                        //                 borderTopRightRadius: 15,
+                        //                 borderBottomRightRadius: 15,
+                        //                 marginRight: 10
+                        //             }}
+                        //             icon
+                        //         >
+                        //             <Left
+                        //                 style={{
+                        //                     marginLeft: 0,
+                        //                     marginRight: 5,
+                        //                     backgroundColor:
+                        //                         entry.fixedCosts == 'true' ||
+                        //                         entry.fixedCosts == true
+                        //                             ? GlobalColors.mainColor
+                        //                             : undefined,
+                        //                     borderTopRightRadius: 15,
+                        //                     borderBottomRightRadius: 15
+                        //                 }}
+                        //             >
+                        //                 <Icon
+                        //                     style={{
+                        //                         color:
+                        //                             entry.fixedCosts ==
+                        //                                 'true' ||
+                        //                             entry.fixedCosts == true
+                        //                                 ? GlobalColors.light
+                        //                                 : undefined
+                        //                     }}
+                        //                     light
+                        //                     name={
+                        //                         entry.categorie
+                        //                             ? entry.categorie.icon
+                        //                             : 'car'
+                        //                     }
+                        //                 ></Icon>
+                        //             </Left>
+                        //             <Body>
+                        //                 <Text>
+                        //                     {entry.description
+                        //                         ? entry.description
+                        //                         : 'Name'}
+                        //                 </Text>
+                        //             </Body>
+                        //             <Right>
+                        //                 <Text style={{color: '#333'}}>
+                        //                     {entry.amount
+                        //                         ? entry.amount +
+                        //                           ' ' +
+                        //                           strings('Currency')
+                        //                         : 50 + strings('Currency')}
+                        //                 </Text>
+                        //             </Right>
+                        //         </ListItem>
+                        //     </>
+                        // )}
+                    />
+                    <SafeAreaView style={{flex: 1}}>
+                        {this.state.entry && this.state.entry.id ? (
+                            <Button
+                                style={{marginVertical: 20}}
+                                warning
+                                iconLeft
+                                transparent
+                                centered
+                                onPress={() => {
+                                    Alert.alert(
+                                        strings('AskDeleteSerie'),
+                                        strings('DeleteEntryOrSerie'),
+                                        [
+                                            {
+                                                text: strings('Cancel'),
+                                                onPress: () => {},
+                                                style: 'cancel'
+                                            },
+                                            {
+                                                text: strings('DeleteEntry'),
+                                                onPress: () => {
+                                                    this._deleteEntry();
+                                                },
+
+                                                style: 'default'
+                                            },
+                                            {
+                                                text: strings('DeleteSerie'),
+                                                style: 'destructive',
+                                                onPress: () =>
+                                                    this._deleteMainEntryAndEntrys()
+                                            }
+                                        ]
+                                    );
+                                }}
+                            >
+                                <Icon name="trash"></Icon>
+                                <Text>{strings('Delete')}</Text>
+                            </Button>
+                        ) : null}
+                    </SafeAreaView>
+                </ImageBackground>
             </Container>
         );
     }

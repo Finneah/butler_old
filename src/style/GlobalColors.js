@@ -10,9 +10,9 @@ const GlobalColors = {
     mainColorLight: '#808080',
     mainColorDark: '#000',
     grey: '#808080',
-    accentColor: '#0F5B36', //FFEBCD
-    accentColorLight: 'rgba(15,91,54,0.50)',
-    accentColorDark: '#526657',
+    accentColor: '#596f6e', //'#3d534e', //FFEBCD
+    accentColorLight: 'rgba(61,83,78,0.50)',
+    accentColorDark: '#2B3B37',
     warning: 'rgba(173,38,47,1)',
     warningLight: 'rgba(231,76,60,0.57)',
     warningDark: 'rgba(135,30,37,1)',
@@ -21,10 +21,10 @@ const GlobalColors = {
     info: '#3498db',
     optionalSaveMainEntryCardBG: 'rgba(241,196,15,0.57)',
     saveMainEntryCardBG: 'rgba(52,152,219,0.57)',
-    listBadgeBlue: 'rgba(146,200,226,0.2)',
-    listBadgeGreen: 'rgba(113,207,121,0.2)',
-    listBadgeRed: 'rgba(227,114,104,0.2)',
-    listBadgeYellow: 'rgba(223,231,68,0.2)'
+    listBadgeBlue: 'rgba(146,200,226,1)',
+    listBadgeGreen: 'rgba(113,207,121,1)',
+    listBadgeRed: 'rgba(227,114,104,1)',
+    listBadgeYellow: 'rgba(223,231,68,1)'
 };
 
 export default GlobalColors;

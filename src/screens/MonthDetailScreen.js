@@ -19,8 +19,14 @@ import {
     View
 } from 'native-base';
 
-import {Dimensions, SectionList, SafeAreaView, StyleSheet} from 'react-native';
-
+import {
+    Dimensions,
+    SectionList,
+    SafeAreaView,
+    StyleSheet,
+    ImageBackground
+} from 'react-native';
+import background from './../components/bg.png';
 import {strings} from '../i18n';
 
 import {Entrys} from '../database';
@@ -29,6 +35,7 @@ import Error_Handler from '../Error_Handler';
 
 import GlobalColors from '../style/GlobalColors';
 import {EntryModel} from '../database/Models/EntryModel';
+import GlobalStyles from '../style/GlobalStyles';
 
 let entryModel = new EntryModel();
 let error_handler = new Error_Handler();
@@ -310,179 +317,225 @@ class MonthDetailScreen extends Component {
 
     render() {
         const {sections} = this.state;
+        const image = background;
 
+        const styles = StyleSheet.create({
+            image: {
+                flex: 1,
+                resizeMode: 'cover',
+                justifyContent: 'center'
+            }
+        });
         return (
             <Container>
-                <Header>
-                    <Left>
-                        <Button
-                            primary
-                            transparent
-                            onPress={() => {
-                                this.props.navigation.goBack();
-                            }}
-                        >
-                            <Icon name="chevron-back" />
-                        </Button>
-                    </Left>
-                    <Body>
-                        <Text>
-                            {this.state.month
-                                ? this.state.month.title + ' ' + this.state.year
-                                : strings('Month')}
-                        </Text>
-                    </Body>
-                    <Right>
-                        <Button
-                            primary
-                            transparent
-                            onPress={() => {
-                                this.props.navigation.navigate('Entrys', {
-                                    screen: 'CreateEditEntry',
-                                    params: {
-                                        selectedMonth: this.state.month
-                                            .monthIndex,
-                                        selectedYear: this.state.year
-                                    }
-                                });
-                            }}
-                        >
-                            <Icon name="add"></Icon>
-                        </Button>
-                    </Right>
-                </Header>
-
-                <SafeAreaView style={{flex: 1}}>
-                    <SectionList
-                        renderSectionHeader={({section: {section}}) => (
-                            <ListItem itemDivider>
-                                <Left>
-                                    <Title>{section.title}</Title>
-                                </Left>
-
-                                <Right>
-                                    <Title>
-                                        {section.complete +
-                                            ' ' +
-                                            strings('Currency')}
-                                    </Title>
-                                </Right>
-                            </ListItem>
-                        )}
-                        renderItem={({item}) => (
-                            <ListItem
-                                noBorder
-                                style={{
-                                    marginLeft: 0,
-                                    backgroundColor: item.mainEntry.badge
-                                        ? GlobalColors[item.mainEntry.badge]
-                                        : undefined,
-                                    borderTopRightRadius: 15,
-                                    borderBottomRightRadius: 15,
-                                    marginRight: 10,
-                                    marginVertical: 2,
-                                    borderBottomWidth: item.isLastMonth ? 2 : 0,
-                                    borderTopWidth: item.isLastMonth ? 2 : 0,
-                                    borderRightWidth: item.isLastMonth ? 2 : 0,
-                                    borderColor: item.isLastMonth
-                                        ? GlobalColors.warning
-                                        : undefined
-                                }}
-                                icon
+                <ImageBackground source={image} style={styles.image}>
+                    <Header
+                        transparent
+                        style={{marginBottom: 10, paddingBottom: 10}}
+                    >
+                        <Left>
+                            <Button
+                                style={[
+                                    GlobalStyles.headerLeftButton,
+                                    {position: 'relative', left: 5}
+                                ]}
+                                primary
+                                transparent
                                 onPress={() => {
-                                    item.mainEntry.interval = item.interval;
-                                    item.mainEntry.categorie = item.categorie;
-
+                                    this.props.navigation.goBack();
+                                }}
+                            >
+                                <Icon name="chevron-back" />
+                            </Button>
+                        </Left>
+                        <Body>
+                            <Title light>
+                                {this.state.month
+                                    ? this.state.month.title +
+                                      ' ' +
+                                      this.state.year
+                                    : strings('Month')}
+                            </Title>
+                        </Body>
+                        <Right>
+                            <Button
+                                large
+                                style={[
+                                    GlobalStyles.headerRightButton,
+                                    {position: 'relative', top: 10}
+                                ]}
+                                rounded
+                                onPress={() => {
                                     this.props.navigation.navigate('Entrys', {
                                         screen: 'CreateEditEntry',
                                         params: {
-                                            entry: item.mainEntry,
                                             selectedMonth: this.state.month
                                                 .monthIndex,
-                                            selectedYear: this.state.year,
-                                            isLastMonth: item.isLastMonth
+                                            selectedYear: this.state.year
                                         }
                                     });
                                 }}
                             >
-                                <Left
+                                <Icon
+                                    style={GlobalStyles.headerRightButtonIcon}
+                                    name="add"
+                                ></Icon>
+                            </Button>
+                        </Right>
+                    </Header>
+
+                    <SafeAreaView style={{flex: 1}}>
+                        <SectionList
+                            renderSectionHeader={({section: {section}}) => (
+                                <ListItem itemDivider>
+                                    <Left>
+                                        <Title>{section.title}</Title>
+                                    </Left>
+
+                                    <Right>
+                                        <Title>
+                                            {section.complete +
+                                                ' ' +
+                                                strings('Currency')}
+                                        </Title>
+                                    </Right>
+                                </ListItem>
+                            )}
+                            renderItem={({item}) => (
+                                <ListItem
+                                    noBorder
                                     style={{
                                         marginLeft: 0,
-                                        marginRight: 5,
-                                        backgroundColor:
-                                            item.mainEntry.fixedCosts == 'true'
-                                                ? GlobalColors.mainColor
-                                                : GlobalColors.lightGrey,
+
                                         borderTopRightRadius: 15,
-                                        borderBottomRightRadius: 15
+                                        borderBottomRightRadius: 15,
+                                        marginRight: 10,
+                                        marginVertical: 2,
+                                        borderBottomWidth: item.isLastMonth
+                                            ? 2
+                                            : 0,
+                                        borderTopWidth: item.isLastMonth
+                                            ? 2
+                                            : 0,
+                                        borderRightWidth: item.isLastMonth
+                                            ? 2
+                                            : 0,
+                                        borderColor: item.isLastMonth
+                                            ? GlobalColors.warning
+                                            : undefined
+                                    }}
+                                    icon
+                                    onPress={() => {
+                                        item.mainEntry.interval = item.interval;
+                                        item.mainEntry.categorie =
+                                            item.categorie;
+
+                                        this.props.navigation.navigate(
+                                            'Entrys',
+                                            {
+                                                screen: 'CreateEditEntry',
+                                                params: {
+                                                    entry: item.mainEntry,
+                                                    selectedMonth: this.state
+                                                        .month.monthIndex,
+                                                    selectedYear: this.state
+                                                        .year,
+                                                    isLastMonth:
+                                                        item.isLastMonth
+                                                }
+                                            }
+                                        );
                                     }}
                                 >
-                                    <Icon
+                                    <Left
                                         style={{
-                                            color:
+                                            marginLeft: 0,
+                                            marginRight: 5,
+                                            backgroundColor:
                                                 item.mainEntry.fixedCosts ==
                                                 'true'
+                                                    ? GlobalColors.mainColor
+                                                    : GlobalColors.lightGrey,
+                                            borderTopRightRadius: 15,
+                                            borderBottomRightRadius: 15
+                                        }}
+                                    >
+                                        <Icon
+                                            style={{
+                                                color: item.mainEntry.badge
+                                                    ? GlobalColors[
+                                                          item.mainEntry.badge
+                                                      ]
+                                                    : item.mainEntry
+                                                          .fixedCosts == 'true'
                                                     ? GlobalColors.light
                                                     : undefined
-                                        }}
-                                        name={item.categorie.icon}
-                                    ></Icon>
-                                </Left>
-                                <Body>
-                                    <Text
-                                        style={
-                                            item.isLastMonth
-                                                ? {color: GlobalColors.warning}
-                                                : undefined
-                                        }
-                                    >
-                                        {item.mainEntry.description}
-                                    </Text>
-                                </Body>
-                                <Right>
-                                    <Text
-                                        style={
-                                            item.isLastMonth
-                                                ? {color: GlobalColors.warning}
-                                                : {
-                                                      color:
-                                                          GlobalColors.mainColor
-                                                  }
-                                        }
-                                    >
-                                        {item.mainEntry.amount +
-                                            ' ' +
-                                            strings('Currency')}
-                                    </Text>
-                                </Right>
-                            </ListItem>
-                        )}
-                        sections={sections}
-                        keyExtractor={(item, index) => item + index}
-                        ListEmptyComponent={() => (
-                            <Card>
-                                <CardItem>
+                                            }}
+                                            name={item.categorie.icon}
+                                        ></Icon>
+                                    </Left>
                                     <Body>
-                                        <Text>
-                                            {
-                                                'Es sind noch keine Einträge vorhanden'
+                                        <Text
+                                            style={
+                                                item.isLastMonth
+                                                    ? {
+                                                          color:
+                                                              GlobalColors.warning
+                                                      }
+                                                    : undefined
                                             }
+                                        >
+                                            {item.mainEntry.description}
                                         </Text>
                                     </Body>
-                                </CardItem>
-                            </Card>
-                        )}
-                    />
-                </SafeAreaView>
+                                    <Right>
+                                        <Text
+                                            style={
+                                                item.isLastMonth
+                                                    ? {
+                                                          color:
+                                                              GlobalColors.warning
+                                                      }
+                                                    : {
+                                                          color:
+                                                              GlobalColors.mainColor
+                                                      }
+                                            }
+                                        >
+                                            {item.mainEntry.amount +
+                                                ' ' +
+                                                strings('Currency')}
+                                        </Text>
+                                    </Right>
+                                </ListItem>
+                            )}
+                            sections={sections}
+                            keyExtractor={(item, index) => item + index}
+                            ListEmptyComponent={() => (
+                                <Card>
+                                    <CardItem>
+                                        <Body>
+                                            <Text>
+                                                {
+                                                    'Es sind noch keine Einträge vorhanden'
+                                                }
+                                            </Text>
+                                        </Body>
+                                    </CardItem>
+                                </Card>
+                            )}
+                        />
+                    </SafeAreaView>
 
-                <ListItem itemDivider>
-                    <Left>
-                        <Title>{strings('Remaining')}</Title>
-                    </Left>
-                    <Right>
-                        <Title>{this._getRemainingText()}</Title>
-                    </Right>
-                </ListItem>
+                    <ListItem itemDivider>
+                        <Left>
+                            <Title>{strings('Remaining')}</Title>
+                        </Left>
+                        <Right>
+                            <Title>{this._getRemainingText()}</Title>
+                        </Right>
+                    </ListItem>
+                </ImageBackground>
             </Container>
         );
     }

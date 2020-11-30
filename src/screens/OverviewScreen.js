@@ -13,11 +13,12 @@ import {
     Text,
     Title
 } from 'native-base';
-
+import background from './../components/bg.png';
 import {
     ActivityIndicator,
     Alert,
     FlatList,
+    ImageBackground,
     Pressable,
     SafeAreaView,
     StyleSheet,
@@ -40,6 +41,7 @@ import {CategorieModel} from '../database/Models/CategorieModel';
 import {IntervalModel} from '../database/Models/IntervalModel';
 import MonthDetailScreen from './MonthDetailScreen';
 import Modal from 'react-native-modal-patch';
+import GlobalStyles from '../style/GlobalStyles';
 let entryModel = new EntryModel();
 let mainEntryModel = new MainEntryModel();
 let categorieModel = new CategorieModel();
@@ -237,228 +239,293 @@ class OverviewScreen extends Component {
 
     render() {
         const {sections, selectedYear, showModalDetails} = this.state;
+        const image = background;
 
+        const styles = StyleSheet.create({
+            image: {
+                flex: 1,
+                resizeMode: 'cover',
+                justifyContent: 'center'
+            }
+        });
         return (
             <Container>
-                <Header>
-                    <Left>
-                        <Button
-                            primary
-                            transparent
-                            onPress={() => {
-                                this.setState({
-                                    selectedYear: this.state.currentYear
-                                });
-                                this.scrollToIndex();
-                            }}
-                        >
-                            <Text>{strings('Today')}</Text>
-                        </Button>
-                    </Left>
-                    <Body>
-                        <Pressable
-                            onLongPress={() => {
-                                Alert.alert(strings('DeleteAllData'), '', [
-                                    {
-                                        text: strings('Cancel'),
-                                        onPress: () => {},
-                                        style: 'cancel'
-                                    },
-
-                                    {
-                                        text: strings('Delete'),
-                                        style: 'destructive',
-                                        onPress: () => {
-                                            Entrys.perform(function (db) {
-                                                Entrys.data().forEach(function (
-                                                    item
-                                                ) {
-                                                    db.remove(item);
-                                                });
-                                            });
-
-                                            MainEntrys.perform(function (db) {
-                                                MainEntrys.data().forEach(
-                                                    function (item) {
-                                                        db.remove(item);
-                                                    }
-                                                );
-                                            });
-                                        }
-                                    }
-                                ]);
-                            }}
-                        >
-                            <ButlerIcon size={50} />
-                        </Pressable>
-                    </Body>
-                    <Right>
-                        <Button
-                            primary
-                            transparent
-                            onPress={() => {
-                                this.props.navigation.navigate('Entrys', {
-                                    screen: 'CreateEditEntry',
-                                    params: {}
-                                });
-                            }}
-                        >
-                            <Icon name="add"></Icon>
-                        </Button>
-                    </Right>
-                </Header>
-
-                <SafeAreaView style={{flex: 1}}>
-                    {this.state.isLoading ? <ActivityIndicator /> : null}
-
-                    <View
-                        style={{
-                            flexDirection: 'row',
-                            justifyContent: 'space-between',
-                            padding: 15
-                        }}
+                <ImageBackground source={image} style={styles.image}>
+                    <Header
+                        transparent
+                        style={{marginBottom: 10, paddingBottom: 10}}
                     >
-                        <Button
-                            iconLeft
-                            transparent
-                            onPress={() => {
-                                this.setState({selectedYear: selectedYear - 1});
-                                this.scrollToTop();
-                            }}
-                        >
-                            <Icon name="arrow-back" />
-                            <Text>{this.state.selectedYear - 1}</Text>
-                        </Button>
-                        <Button onPress={() => this.scrollToTop()}>
-                            <Text>{this.state.selectedYear}</Text>
-                        </Button>
-                        <Button
-                            iconRight
-                            transparent
-                            onPress={() => {
-                                this.setState({selectedYear: selectedYear + 1});
-                                this.scrollToTop();
-                            }}
-                        >
-                            <Text>{this.state.selectedYear + 1}</Text>
-                            <Icon name="arrow-forward" />
-                        </Button>
-                    </View>
+                        <Left>
+                            <Button
+                                style={[
+                                    GlobalStyles.headerLeftButton,
+                                    {position: 'relative', left: 5}
+                                ]}
+                                primary
+                                transparent
+                                onPress={() => {
+                                    this.setState({
+                                        selectedYear: this.state.currentYear
+                                    });
+                                    this.scrollToIndex();
+                                }}
+                            >
+                                <Text>{strings('Today')}</Text>
+                            </Button>
+                        </Left>
+                        <Body>
+                            <Pressable
+                                onLongPress={() => {
+                                    Alert.alert(strings('DeleteAllData'), '', [
+                                        {
+                                            text: strings('Cancel'),
+                                            onPress: () => {},
+                                            style: 'cancel'
+                                        },
 
-                    <FlatList
-                        ref={(ref) => {
-                            this.thisYearFlatListRef = ref;
-                        }}
-                        initialScrollIndex={this._getInitialScrollIndex()}
-                        getItemLayout={(data, index) => ({
-                            length: 440,
-                            offset: 440 * index,
-                            index
-                        })}
-                        data={sections}
-                        initialNumToRender={
-                            this.state.sections &&
-                            this.state.sections[2] != undefined
-                                ? 3
-                                : this.state.sections.length
-                        }
-                        // listKey={this.props.thisDate.getFullYear().toString()}
-                        keyExtractor={(item, index) => index.toString()}
-                        scrollEnabled={true}
-                        renderItem={({item}) => (
-                            <Card overviewCard>
-                                <CardItem header first>
-                                    <Left></Left>
-                                    <Body>
-                                        <Title light>{item.title}</Title>
-                                    </Body>
-                                    <Right></Right>
-                                </CardItem>
-                                <ProgressCircle
-                                    style={{
-                                        height: 120,
-                                        marginTop: 20,
-                                        marginBottom: 10
-                                    }}
-                                    progress={this._getProgressForItem(item)}
-                                    strokeWidth={10}
-                                    progressColor={GlobalColors.accentColor}
-                                />
-
-                                <ListItem>
-                                    <Body>
-                                        <Text>{strings('Incomings')}</Text>
-                                    </Body>
-                                    <Right>
-                                        <Text>
-                                            {item.calc.incoming.toString() +
-                                                ' ' +
-                                                strings('Currency')}
-                                        </Text>
-                                    </Right>
-                                </ListItem>
-                                <ListItem>
-                                    <Body>
-                                        <Text>{strings('Outgoings')}</Text>
-                                    </Body>
-                                    <Right>
-                                        <Text>
-                                            {item.calc.outgoing.toString() +
-                                                ' ' +
-                                                strings('Currency')}
-                                        </Text>
-                                    </Right>
-                                </ListItem>
-                                <ListItem>
-                                    <Body>
-                                        <Text>{strings('Remaining')}</Text>
-                                    </Body>
-                                    <Right>
-                                        <Text>
-                                            {item.calc.remaining.toString() +
-                                                ' ' +
-                                                strings('Currency')}
-                                        </Text>
-                                    </Right>
-                                </ListItem>
-                                <CardItem footer last>
-                                    <Body></Body>
-                                    <Right>
-                                        <Button
-                                            primary
-                                            transparent
-                                            iconRight
-                                            onPress={() => {
-                                                this.props.navigation.navigate(
-                                                    'Details',
-                                                    {
-                                                        screen: 'MonthDetail',
-                                                        params: {
-                                                            month: item,
-                                                            year: selectedYear
+                                        {
+                                            text: strings('Delete'),
+                                            style: 'destructive',
+                                            onPress: () => {
+                                                Entrys.perform(function (db) {
+                                                    Entrys.data().forEach(
+                                                        function (item) {
+                                                            db.remove(item);
                                                         }
-                                                    }
-                                                );
-                                            }}
-                                        >
-                                            <Text>{strings('details')}</Text>
-                                            <Icon name="chevron-forward"></Icon>
-                                        </Button>
-                                    </Right>
-                                </CardItem>
-                            </Card>
-                        )}
-                        ListEmptyComponent={() => (
-                            <Card>
-                                <CardItem firstlast>
-                                    <Body>
-                                        <Text>{strings('noEntrysYet')}</Text>
-                                    </Body>
-                                </CardItem>
-                            </Card>
-                        )}
-                    />
-                </SafeAreaView>
+                                                    );
+                                                });
+
+                                                MainEntrys.perform(function (
+                                                    db
+                                                ) {
+                                                    MainEntrys.data().forEach(
+                                                        function (item) {
+                                                            db.remove(item);
+                                                        }
+                                                    );
+                                                });
+                                            }
+                                        }
+                                    ]);
+                                }}
+                            >
+                                <ButlerIcon size={50} />
+                            </Pressable>
+                        </Body>
+                        <Right>
+                            <Button
+                                large
+                                style={[
+                                    GlobalStyles.headerRightButton,
+                                    {position: 'relative', top: 10}
+                                ]}
+                                rounded
+                                onPress={() => {
+                                    this.props.navigation.navigate('Entrys', {
+                                        screen: 'CreateEditEntry',
+                                        params: {}
+                                    });
+                                }}
+                            >
+                                <Icon
+                                    style={GlobalStyles.headerRightButtonIcon}
+                                    light
+                                    name="add"
+                                ></Icon>
+                            </Button>
+                        </Right>
+                    </Header>
+
+                    <SafeAreaView style={{flex: 1}}>
+                        {this.state.isLoading ? <ActivityIndicator /> : null}
+
+                        <View
+                            style={{
+                                flexDirection: 'row',
+                                justifyContent: 'space-between',
+                                padding: 15
+                            }}
+                        >
+                            <Button
+                                iconLeft
+                                transparent
+                                onPress={() => {
+                                    this.setState({
+                                        selectedYear: selectedYear - 1
+                                    });
+                                    this.scrollToTop();
+                                }}
+                            >
+                                <Icon name="arrow-back" />
+                                <Text>{this.state.selectedYear - 1}</Text>
+                            </Button>
+                            <Button onPress={() => this.scrollToTop()}>
+                                <Text>{this.state.selectedYear}</Text>
+                            </Button>
+                            <Button
+                                iconRight
+                                transparent
+                                onPress={() => {
+                                    this.setState({
+                                        selectedYear: selectedYear + 1
+                                    });
+                                    this.scrollToTop();
+                                }}
+                            >
+                                <Text>{this.state.selectedYear + 1}</Text>
+                                <Icon name="arrow-forward" />
+                            </Button>
+                        </View>
+
+                        <FlatList
+                            ref={(ref) => {
+                                this.thisYearFlatListRef = ref;
+                            }}
+                            initialScrollIndex={this._getInitialScrollIndex()}
+                            getItemLayout={(data, index) => ({
+                                length: 460,
+                                offset: 460 * index,
+                                index
+                            })}
+                            data={sections}
+                            initialNumToRender={
+                                this.state.sections &&
+                                this.state.sections[2] != undefined
+                                    ? 3
+                                    : this.state.sections.length
+                            }
+                            // listKey={this.props.thisDate.getFullYear().toString()}
+                            keyExtractor={(item, index) => index.toString()}
+                            scrollEnabled={true}
+                            renderItem={({item}) => (
+                                <Card
+                                    noShadow
+                                    style={{
+                                        backgroundColor: GlobalColors.mainColor,
+                                        borderWidth: 0,
+                                        borderColor: GlobalColors.light,
+                                        padding: 15
+                                    }}
+                                >
+                                    <CardItem first>
+                                        <Left></Left>
+                                        <Body>
+                                            <Title light>{item.title}</Title>
+                                        </Body>
+                                        <Right></Right>
+                                    </CardItem>
+                                    <ProgressCircle
+                                        style={{
+                                            height: 120,
+                                            marginTop: 20,
+                                            marginBottom: 10,
+                                            backgroundColor: GlobalColors.butler
+                                        }}
+                                        progress={this._getProgressForItem(
+                                            item
+                                        )}
+                                        strokeWidth={10}
+                                        progressColor={GlobalColors.accentColor}
+                                    />
+
+                                    <ListItem
+                                        style={[
+                                            GlobalStyles.overviewListItem,
+                                            {
+                                                borderTopLeftRadius: 20,
+                                                borderTopRightRadius: 20
+                                            }
+                                        ]}
+                                    >
+                                        <Body>
+                                            <Text>{strings('Incomings')}</Text>
+                                        </Body>
+                                        <Right>
+                                            <Text>
+                                                {item.calc.incoming.toString() +
+                                                    ' ' +
+                                                    strings('Currency')}
+                                            </Text>
+                                        </Right>
+                                    </ListItem>
+                                    <ListItem
+                                        style={GlobalStyles.overviewListItem}
+                                    >
+                                        <Body>
+                                            <Text>{strings('Outgoings')}</Text>
+                                        </Body>
+                                        <Right>
+                                            <Text>
+                                                {item.calc.outgoing.toString() +
+                                                    ' ' +
+                                                    strings('Currency')}
+                                            </Text>
+                                        </Right>
+                                    </ListItem>
+                                    <ListItem
+                                        style={[
+                                            GlobalStyles.overviewListItem,
+                                            {
+                                                borderBottomLeftRadius: 20,
+                                                borderBottomRightRadius: 20
+                                            }
+                                        ]}
+                                    >
+                                        <Body>
+                                            <Text>{strings('Remaining')}</Text>
+                                        </Body>
+                                        <Right>
+                                            <Text>
+                                                {item.calc.remaining.toString() +
+                                                    ' ' +
+                                                    strings('Currency')}
+                                            </Text>
+                                        </Right>
+                                    </ListItem>
+                                    <CardItem last>
+                                        <Body></Body>
+                                        <Right>
+                                            <Button
+                                                secondary
+                                                rounded
+                                                iconRight
+                                                onPress={() => {
+                                                    this.props.navigation.navigate(
+                                                        'Details',
+                                                        {
+                                                            screen:
+                                                                'MonthDetail',
+                                                            params: {
+                                                                month: item,
+                                                                year: selectedYear
+                                                            }
+                                                        }
+                                                    );
+                                                }}
+                                            >
+                                                <Text>
+                                                    {strings('details')}
+                                                </Text>
+                                                <Icon name="chevron-forward"></Icon>
+                                            </Button>
+                                        </Right>
+                                    </CardItem>
+                                </Card>
+                            )}
+                            ListEmptyComponent={() => (
+                                <Card>
+                                    <CardItem firstlast>
+                                        <Body>
+                                            <Text light>
+                                                {strings('noEntrysYet')}
+                                            </Text>
+                                        </Body>
+                                    </CardItem>
+                                </Card>
+                            )}
+                        />
+                    </SafeAreaView>
+                </ImageBackground>
             </Container>
         );
     }

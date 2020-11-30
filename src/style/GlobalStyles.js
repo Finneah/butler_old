@@ -36,7 +36,32 @@ const GlobalStyles = {
         flexDirection: 'row',
         justifyContent: 'space-around'
     },
-    safeAreView: {flex: 1, backgroundColor: 'transparent'}
+    safeAreView: {flex: 1, backgroundColor: GlobalColors.light},
+    header: {
+        backgroundColor: GlobalColors.mainColor,
+        flexDirection: 'row',
+        justifyContent: 'space-between',
+        padding: 10,
+        zIndex: 1
+    },
+    headerLeftButton: {
+        backgroundColor: GlobalColors.lightGrey,
+        borderRadius: 20
+    },
+    headerRightButton: {
+        backgroundColor: GlobalColors.accentColor,
+        borderRadius: 50,
+        justifyContent: 'center',
+        alignItems: 'center'
+    },
+
+    headerRightButtonIcon: {
+        color: GlobalColors.lightGrey
+    },
+    overviewListItem: {
+        backgroundColor: GlobalColors.light,
+        marginLeft: 0
+    }
 };
 
 export default GlobalStyles;
