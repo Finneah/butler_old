@@ -1,4 +1,4 @@
-import React, {Component} from 'react';
+import * as moment from 'moment';
 import {
     Body,
     Button,
@@ -13,7 +13,7 @@ import {
     Text,
     Title
 } from 'native-base';
-import background from './../components/bg.png';
+import React, {useState} from 'react';
 import {
     ActivityIndicator,
     Alert,
@@ -24,72 +24,66 @@ import {
     StyleSheet,
     View
 } from 'react-native';
-
-import ButlerIcon from '../components/Icons/ButlerIcon';
 import {ProgressCircle} from 'react-native-svg-charts';
 
-import * as moment from 'moment';
-import {strings} from '../i18n';
+import background from './../components/bg.png';
+import ButlerIcon from '../components/Icons/ButlerIcon';
 import {Entrys, MainEntrys} from '../database';
-import Helper from '../Helper';
-
-import GlobalColors from '../style/GlobalColors';
-import Error_Handler from '../Error_Handler';
-import {EntryModel} from '../database/Models/EntryModel';
-import {MainEntryModel} from '../database/Models/MainEntryModel';
 import {CategorieModel} from '../database/Models/CategorieModel';
+import {EntryModel} from '../database/Models/EntryModel';
 import {IntervalModel} from '../database/Models/IntervalModel';
-import MonthDetailScreen from './MonthDetailScreen';
-import Modal from 'react-native-modal-patch';
+import {MainEntryModel} from '../database/Models/MainEntryModel';
+import Error_Handler from '../Error_Handler';
+import Helper from '../Helper';
+import {strings} from '../i18n';
+import GlobalColors from '../style/GlobalColors';
 import GlobalStyles from '../style/GlobalStyles';
+
 let entryModel = new EntryModel();
 let mainEntryModel = new MainEntryModel();
 let categorieModel = new CategorieModel();
 let intervalModel = new IntervalModel();
 let helper = new Helper();
 let error_handler = new Error_Handler();
-class OverviewScreen extends Component {
-    constructor() {
-        super();
-        this.state = {
-            active: false,
-            isLoading: true,
-            intervalsLoaded: false,
-            categoriesLoaded: false,
-            sections: [],
-            selected: false,
-            selectedItem: undefined,
-            intervals: undefined,
-            categories: undefined,
-            currentYear: new Date().getFullYear(),
-            selectedYear: new Date().getFullYear()
-        };
-    }
-    componentDidMount() {
+
+const OverviewScreen = (props) => {
+    const [isLoading, setIsLoading] = useState(true);
+    const [sections, setSections] = useState([]);
+    const [currentYear] = useState(new Date().getFullYear());
+    const [selectedYear, setSelectedYear] = useState(new Date().getFullYear());
+    const [thisYearFlatListRef, setThisYearFlatListRef] = useState(undefined);
+    const image = background;
+
+    const styles = StyleSheet.create({
+        image: {
+            flex: 1,
+            resizeMode: 'cover',
+            justifyContent: 'center'
+        }
+    });
+
+    React.useEffect(() => {
         MainEntrys.onLoaded(() => {
             console.info('MainEntrys loaded');
         });
         Entrys.onLoaded(() => {
             console.info('Entrys loaded');
-            this._setState();
+            _setState();
         });
 
         Entrys.onChange(() => {
             console.info('Entrys changed');
-            this._setState();
+            _setState();
         });
-    }
+    }, []);
 
-    componentDidUpdate(prevProps, prevState) {
-        if (prevState.selectedYear != this.state.selectedYear) {
-            this._setState();
-            console.info('here');
-        }
-    }
+    React.useEffect(() => {
+        _setState();
+        console.info('here');
+    }, [selectedYear]);
 
-    _setState() {
+    function _setState() {
         try {
-            var {selectedYear} = this.state;
             var sections = [];
 
             var dateArray = helper._getDates(
@@ -178,16 +172,14 @@ class OverviewScreen extends Component {
                 });
             }
 
-            this.setState({
-                isLoading: false,
-                sections: sections
-            });
+            setIsLoading(false);
+            setSections(sections);
         } catch (error) {
             error_handler._handleError('_setState', error);
         }
     }
 
-    _getProgressForItem(item) {
+    function _getProgressForItem(item) {
         function getPercentageChange(incoming, outgoing) {
             return ((100 * outgoing) / incoming / 100).toFixed(2);
         }
@@ -199,10 +191,9 @@ class OverviewScreen extends Component {
         return parseFloat(progress);
     }
 
-    _getInitialScrollIndex() {
-        const {sections} = this.state;
+    function _getInitialScrollIndex() {
         if (sections.length > 0) {
-            if (this.state.selectedYear == this.state.currentYear) {
+            if (selectedYear == currentYear) {
                 var m = moment.months('de');
                 var index = 1;
                 sections.filter((a, i) => {
@@ -218,316 +209,284 @@ class OverviewScreen extends Component {
         return 0;
     }
 
-    scrollToIndex = () => {
-        const {sections} = this.state;
-
+    function scrollToIndex() {
         if (sections.length > 0) {
-            this.thisYearFlatListRef.scrollToIndex({
+            thisYearFlatListRef.scrollToIndex({
                 animated: true,
-                index: this._getInitialScrollIndex()
+                index: _getInitialScrollIndex()
             });
         }
-    };
+    }
 
-    scrollToTop() {
-        const {sections} = this.state;
-
+    function scrollToTop() {
         if (sections.length > 0) {
-            this.thisYearFlatListRef.scrollToIndex({animated: true, index: 0});
+            thisYearFlatListRef.scrollToIndex({animated: true, index: 0});
         }
     }
-
-    render() {
-        const {sections, selectedYear, showModalDetails} = this.state;
-        const image = background;
-
-        const styles = StyleSheet.create({
-            image: {
-                flex: 1,
-                resizeMode: 'cover',
-                justifyContent: 'center'
-            }
-        });
-        return (
-            <Container>
-                <ImageBackground source={image} style={styles.image}>
-                    <Header
-                        transparent
-                        style={{marginBottom: 10, paddingBottom: 10}}
-                    >
-                        <Left>
-                            <Button
-                                style={[
-                                    GlobalStyles.headerLeftButton,
-                                    {position: 'relative', left: 5}
-                                ]}
-                                primary
-                                transparent
-                                onPress={() => {
-                                    this.setState({
-                                        selectedYear: this.state.currentYear
-                                    });
-                                    this.scrollToIndex();
-                                }}
-                            >
-                                <Text>{strings('Today')}</Text>
-                            </Button>
-                        </Left>
-                        <Body>
-                            <Pressable
-                                onLongPress={() => {
-                                    Alert.alert(strings('DeleteAllData'), '', [
-                                        {
-                                            text: strings('Cancel'),
-                                            onPress: () => {},
-                                            style: 'cancel'
-                                        },
-
-                                        {
-                                            text: strings('Delete'),
-                                            style: 'destructive',
-                                            onPress: () => {
-                                                Entrys.perform(function (db) {
-                                                    Entrys.data().forEach(
-                                                        function (item) {
-                                                            db.remove(item);
-                                                        }
-                                                    );
-                                                });
-
-                                                MainEntrys.perform(function (
-                                                    db
-                                                ) {
-                                                    MainEntrys.data().forEach(
-                                                        function (item) {
-                                                            db.remove(item);
-                                                        }
-                                                    );
-                                                });
-                                            }
-                                        }
-                                    ]);
-                                }}
-                            >
-                                <ButlerIcon size={50} />
-                            </Pressable>
-                        </Body>
-                        <Right>
-                            <Button
-                                large
-                                style={[
-                                    GlobalStyles.headerRightButton,
-                                    {position: 'relative', top: 10}
-                                ]}
-                                rounded
-                                onPress={() => {
-                                    this.props.navigation.navigate('Entrys', {
-                                        screen: 'CreateEditEntry',
-                                        params: {}
-                                    });
-                                }}
-                            >
-                                <Icon
-                                    style={GlobalStyles.headerRightButtonIcon}
-                                    light
-                                    name="add"
-                                ></Icon>
-                            </Button>
-                        </Right>
-                    </Header>
-
-                    <SafeAreaView style={{flex: 1}}>
-                        {this.state.isLoading ? <ActivityIndicator /> : null}
-
-                        <View
-                            style={{
-                                flexDirection: 'row',
-                                justifyContent: 'space-between',
-                                padding: 15
+    return (
+        <Container>
+            <ImageBackground source={image} style={styles.image}>
+                <Header
+                    transparent
+                    style={{marginBottom: 10, paddingBottom: 10}}
+                >
+                    <Left>
+                        <Button
+                            style={[
+                                GlobalStyles.headerLeftButton,
+                                {position: 'relative', left: 5}
+                            ]}
+                            primary
+                            transparent
+                            onPress={() => {
+                                setSelectedYear(currentYear);
+                                scrollToIndex();
                             }}
                         >
-                            <Button
-                                iconLeft
-                                transparent
-                                onPress={() => {
-                                    this.setState({
-                                        selectedYear: selectedYear - 1
-                                    });
-                                    this.scrollToTop();
-                                }}
-                            >
-                                <Icon name="arrow-back" />
-                                <Text>{this.state.selectedYear - 1}</Text>
-                            </Button>
-                            <Button onPress={() => this.scrollToTop()}>
-                                <Text>{this.state.selectedYear}</Text>
-                            </Button>
-                            <Button
-                                iconRight
-                                transparent
-                                onPress={() => {
-                                    this.setState({
-                                        selectedYear: selectedYear + 1
-                                    });
-                                    this.scrollToTop();
-                                }}
-                            >
-                                <Text>{this.state.selectedYear + 1}</Text>
-                                <Icon name="arrow-forward" />
-                            </Button>
-                        </View>
+                            <Text>{strings('Today')}</Text>
+                        </Button>
+                    </Left>
+                    <Body>
+                        <Pressable
+                            onLongPress={() => {
+                                Alert.alert(strings('DeleteAllData'), '', [
+                                    {
+                                        text: strings('Cancel'),
+                                        onPress: () => {},
+                                        style: 'cancel'
+                                    },
 
-                        <FlatList
-                            ref={(ref) => {
-                                this.thisYearFlatListRef = ref;
+                                    {
+                                        text: strings('Delete'),
+                                        style: 'destructive',
+                                        onPress: () => {
+                                            Entrys.perform(function (db) {
+                                                Entrys.data().forEach(function (
+                                                    item
+                                                ) {
+                                                    db.remove(item);
+                                                });
+                                            });
+
+                                            MainEntrys.perform(function (db) {
+                                                MainEntrys.data().forEach(
+                                                    function (item) {
+                                                        db.remove(item);
+                                                    }
+                                                );
+                                            });
+                                        }
+                                    }
+                                ]);
                             }}
-                            initialScrollIndex={this._getInitialScrollIndex()}
-                            getItemLayout={(data, index) => ({
-                                length: 460,
-                                offset: 460 * index,
-                                index
-                            })}
-                            data={sections}
-                            initialNumToRender={
-                                this.state.sections &&
-                                this.state.sections[2] != undefined
-                                    ? 3
-                                    : this.state.sections.length
-                            }
-                            // listKey={this.props.thisDate.getFullYear().toString()}
-                            keyExtractor={(item, index) => index.toString()}
-                            scrollEnabled={true}
-                            renderItem={({item}) => (
-                                <Card
-                                    noShadow
-                                    style={{
-                                        backgroundColor: GlobalColors.mainColor,
-                                        borderWidth: 0,
-                                        borderColor: GlobalColors.light,
-                                        padding: 15
-                                    }}
-                                >
-                                    <CardItem first>
-                                        <Left></Left>
-                                        <Body>
-                                            <Title light>{item.title}</Title>
-                                        </Body>
-                                        <Right></Right>
-                                    </CardItem>
-                                    <ProgressCircle
-                                        style={{
-                                            height: 120,
-                                            marginTop: 20,
-                                            marginBottom: 10,
-                                            backgroundColor: GlobalColors.butler
-                                        }}
-                                        progress={this._getProgressForItem(
-                                            item
-                                        )}
-                                        strokeWidth={10}
-                                        progressColor={GlobalColors.accentColor}
-                                    />
+                        >
+                            <ButlerIcon size={50} />
+                        </Pressable>
+                    </Body>
+                    <Right>
+                        <Button
+                            large
+                            style={[
+                                GlobalStyles.headerRightButton,
+                                {position: 'relative', top: 10}
+                            ]}
+                            rounded
+                            onPress={() => {
+                                props.navigation.navigate('Entrys', {
+                                    screen: 'CreateEditEntry',
+                                    params: {}
+                                });
+                            }}
+                        >
+                            <Icon
+                                style={GlobalStyles.headerRightButtonIcon}
+                                light
+                                name="add"
+                            ></Icon>
+                        </Button>
+                    </Right>
+                </Header>
 
-                                    <ListItem
-                                        style={[
-                                            GlobalStyles.overviewListItem,
-                                            {
-                                                borderTopLeftRadius: 20,
-                                                borderTopRightRadius: 20
-                                            }
-                                        ]}
-                                    >
-                                        <Body>
-                                            <Text>{strings('Incomings')}</Text>
-                                        </Body>
-                                        <Right>
-                                            <Text>
-                                                {item.calc.incoming.toString() +
-                                                    ' ' +
-                                                    strings('Currency')}
-                                            </Text>
-                                        </Right>
-                                    </ListItem>
-                                    <ListItem
-                                        style={GlobalStyles.overviewListItem}
-                                    >
-                                        <Body>
-                                            <Text>{strings('Outgoings')}</Text>
-                                        </Body>
-                                        <Right>
-                                            <Text>
-                                                {item.calc.outgoing.toString() +
-                                                    ' ' +
-                                                    strings('Currency')}
-                                            </Text>
-                                        </Right>
-                                    </ListItem>
-                                    <ListItem
-                                        style={[
-                                            GlobalStyles.overviewListItem,
-                                            {
-                                                borderBottomLeftRadius: 20,
-                                                borderBottomRightRadius: 20
-                                            }
-                                        ]}
-                                    >
-                                        <Body>
-                                            <Text>{strings('Remaining')}</Text>
-                                        </Body>
-                                        <Right>
-                                            <Text>
-                                                {item.calc.remaining.toString() +
-                                                    ' ' +
-                                                    strings('Currency')}
-                                            </Text>
-                                        </Right>
-                                    </ListItem>
-                                    <CardItem last>
-                                        <Body></Body>
-                                        <Right>
-                                            <Button
-                                                secondary
-                                                rounded
-                                                iconRight
-                                                onPress={() => {
-                                                    this.props.navigation.navigate(
-                                                        'Details',
-                                                        {
-                                                            screen:
-                                                                'MonthDetail',
-                                                            params: {
-                                                                month: item,
-                                                                year: selectedYear
-                                                            }
+                <SafeAreaView style={{flex: 1}}>
+                    {isLoading ? <ActivityIndicator /> : null}
+
+                    <View
+                        style={{
+                            flexDirection: 'row',
+                            justifyContent: 'space-between',
+                            padding: 15
+                        }}
+                    >
+                        <Button
+                            iconLeft
+                            transparent
+                            onPress={() => {
+                                setSelectedYear(selectedYear - 1);
+                                scrollToTop();
+                            }}
+                        >
+                            <Icon name="arrow-back" />
+                            <Text>{selectedYear - 1}</Text>
+                        </Button>
+                        <Button onPress={() => scrollToTop()}>
+                            <Text>{selectedYear}</Text>
+                        </Button>
+                        <Button
+                            iconRight
+                            transparent
+                            onPress={() => {
+                                setSelectedYear(selectedYear + 1);
+                                scrollToTop();
+                            }}
+                        >
+                            <Text>{selectedYear + 1}</Text>
+                            <Icon name="arrow-forward" />
+                        </Button>
+                    </View>
+
+                    <FlatList
+                        ref={(ref) => {
+                            setThisYearFlatListRef(ref);
+                        }}
+                        initialScrollIndex={_getInitialScrollIndex()}
+                        getItemLayout={(data, index) => ({
+                            length: 460,
+                            offset: 460 * index,
+                            index
+                        })}
+                        data={sections}
+                        initialNumToRender={
+                            sections && sections[2] != undefined
+                                ? 3
+                                : sections.length
+                        }
+                        // listKey={this.props.thisDate.getFullYear().toString()}
+                        keyExtractor={(item, index) => index.toString()}
+                        scrollEnabled={true}
+                        renderItem={({item}) => (
+                            <Card
+                                noShadow
+                                style={{
+                                    backgroundColor: GlobalColors.mainColor,
+                                    borderWidth: 0,
+                                    borderColor: GlobalColors.light,
+                                    padding: 15
+                                }}
+                            >
+                                <CardItem first>
+                                    <Left></Left>
+                                    <Body>
+                                        <Title light>{item.title}</Title>
+                                    </Body>
+                                    <Right></Right>
+                                </CardItem>
+                                <ProgressCircle
+                                    style={{
+                                        height: 120,
+                                        marginTop: 20,
+                                        marginBottom: 10,
+                                        backgroundColor: GlobalColors.butler
+                                    }}
+                                    progress={_getProgressForItem(item)}
+                                    strokeWidth={10}
+                                    progressColor={GlobalColors.accentColor}
+                                />
+
+                                <ListItem
+                                    style={[
+                                        GlobalStyles.overviewListItem,
+                                        {
+                                            borderTopLeftRadius: 20,
+                                            borderTopRightRadius: 20
+                                        }
+                                    ]}
+                                >
+                                    <Body>
+                                        <Text>{strings('Incomings')}</Text>
+                                    </Body>
+                                    <Right>
+                                        <Text>
+                                            {item.calc.incoming.toString() +
+                                                ' ' +
+                                                strings('Currency')}
+                                        </Text>
+                                    </Right>
+                                </ListItem>
+                                <ListItem style={GlobalStyles.overviewListItem}>
+                                    <Body>
+                                        <Text>{strings('Outgoings')}</Text>
+                                    </Body>
+                                    <Right>
+                                        <Text>
+                                            {item.calc.outgoing.toString() +
+                                                ' ' +
+                                                strings('Currency')}
+                                        </Text>
+                                    </Right>
+                                </ListItem>
+                                <ListItem
+                                    style={[
+                                        GlobalStyles.overviewListItem,
+                                        {
+                                            borderBottomLeftRadius: 20,
+                                            borderBottomRightRadius: 20
+                                        }
+                                    ]}
+                                >
+                                    <Body>
+                                        <Text>{strings('Remaining')}</Text>
+                                    </Body>
+                                    <Right>
+                                        <Text>
+                                            {item.calc.remaining.toString() +
+                                                ' ' +
+                                                strings('Currency')}
+                                        </Text>
+                                    </Right>
+                                </ListItem>
+                                <CardItem last>
+                                    <Body></Body>
+                                    <Right>
+                                        <Button
+                                            secondary
+                                            rounded
+                                            iconRight
+                                            onPress={() => {
+                                                props.navigation.navigate(
+                                                    'Details',
+                                                    {
+                                                        screen: 'MonthDetail',
+                                                        params: {
+                                                            month: item,
+                                                            year: selectedYear
                                                         }
-                                                    );
-                                                }}
-                                            >
-                                                <Text>
-                                                    {strings('details')}
-                                                </Text>
-                                                <Icon name="chevron-forward"></Icon>
-                                            </Button>
-                                        </Right>
-                                    </CardItem>
-                                </Card>
-                            )}
-                            ListEmptyComponent={() => (
-                                <Card>
-                                    <CardItem firstlast>
-                                        <Body>
-                                            <Text light>
-                                                {strings('noEntrysYet')}
-                                            </Text>
-                                        </Body>
-                                    </CardItem>
-                                </Card>
-                            )}
-                        />
-                    </SafeAreaView>
-                </ImageBackground>
-            </Container>
-        );
-    }
-}
+                                                    }
+                                                );
+                                            }}
+                                        >
+                                            <Text>{strings('details')}</Text>
+                                            <Icon name="chevron-forward"></Icon>
+                                        </Button>
+                                    </Right>
+                                </CardItem>
+                            </Card>
+                        )}
+                        ListEmptyComponent={() => (
+                            <Card>
+                                <CardItem firstlast>
+                                    <Body>
+                                        <Text light>
+                                            {strings('noEntrysYet')}
+                                        </Text>
+                                    </Body>
+                                </CardItem>
+                            </Card>
+                        )}
+                    />
+                </SafeAreaView>
+            </ImageBackground>
+        </Container>
+    );
+};
+
 export default OverviewScreen;

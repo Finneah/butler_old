@@ -16,7 +16,7 @@ import {
     Title,
     Toast
 } from 'native-base';
-import React, {Component} from 'react';
+import React, {useState} from 'react';
 import {Alert, FlatList, ImageBackground, StyleSheet} from 'react-native';
 import {SafeAreaView} from 'react-native-safe-area-context';
 import _ from 'lodash';
@@ -43,36 +43,41 @@ let entryModel = new EntryModel();
 let mainEntryModel = new MainEntryModel();
 let helper = new Helper();
 let error_handler = new Error_Handler();
-class CreateEditEntryScreen extends Component {
-    constructor() {
-        super();
-        this.state = {
-            isTest: false,
-            showTillDatePicker: false,
-            showModalChooseUpdate: false,
-            disabled: false,
-            descriptionIsValid: false,
-            amountIsValid: false,
-            intervals: undefined,
-            categories: undefined,
-            entry: {},
-            options: [],
-            updateMainEntryArray: [],
-            selectedMonth: undefined,
-            selectedYear: undefined
-        };
-    }
+const CreateEditEntryScreen = (props) => {
+    const [isTest] = useState(false);
+    const [showTillDatePicker, setShowTillDatePicker] = useState(false);
+    const [showModalChooseUpdate, setShowModalChooseUpdate] = useState(false);
+    const [disabled, setDisabled] = useState(false);
+    const [intervals, setIntervals] = useState(undefined);
+    const [entry, setEntry] = useState({});
+    const [options, setOptions] = useState([]);
+    const [updateMainEntryArray, setUpdateMainEntryArray] = useState([]);
+    const [selectedMonth, setSelectedMonth] = useState(undefined);
+    const [selectedYear, setSelectedYear] = useState(undefined);
+    const [isLastMonth, setIsLastMonth] = useState(undefined);
 
-    componentDidMount() {
+    const image = background;
+
+    const styles = StyleSheet.create({
+        image: {
+            flex: 1,
+            resizeMode: 'cover',
+            justifyContent: 'center'
+        }
+    });
+
+    React.useEffect(() => {
         try {
-            var {params} = this.props.route;
+            console.log('useEffect 1');
+            var {params} = props.route;
 
             if (params && params.entry) {
-                this.setState({entry: params.entry});
+                setEntry(params.entry);
+
                 if (params.entry.periodTill) {
-                    this.setState({showTillDatePicker: true});
+                    setShowTillDatePicker(true);
                 }
-                this._checkEntry();
+                _checkEntry();
             }
 
             if (helper.isEmpty(params.entry)) {
@@ -89,103 +94,82 @@ class CreateEditEntryScreen extends Component {
                         )
                     };
 
-                    this.setState({
-                        selectedMonth: params.selectedMonth,
-                        selectedYear: params.selectedYear
-                    });
+                    setSelectedMonth(params.selectedMonth);
+                    setSelectedYear(params.selectedYear);
                 }
-                this.setState({
-                    entry: entry
-                });
+                setEntry(entry);
             }
 
             var options = mainEntryModel.viewElements;
 
-            this.setState({
-                options,
-                intervals: Intervals.data(),
-                isLastMonth:
-                    params && params.isLastMonth != undefined
-                        ? params.isLastMonth
-                        : false
-            });
+            setOptions(options);
+            setIntervals(Intervals.data());
+            setIsLastMonth(
+                params && params.isLastMonth != undefined
+                    ? params.isLastMonth
+                    : false
+            );
         } catch (error) {
             error_handler._handleError('componentDidMount', error);
         }
-    }
+    }, []);
 
-    componentDidUpdate(prevProps, prevState) {
-        try {
-            if (prevProps.route.params != this.props.route.params) {
-                if (
-                    this.props.route.params &&
-                    this.props.route.params.categorie
-                ) {
-                    this._checkEntry();
+    React.useEffect(() => {
+        console.log('useEffect 2');
+        if (props.route.params && props.route.params.categorie != undefined) {
+            _checkEntry();
+            console.log('test', props.route.params.categorie);
 
-                    if (
-                        this.state.entry.categorie !=
-                        this.props.route.params.categorie
-                    ) {
-                        this.setState((prevState) => ({
-                            entry: {
-                                ...prevState.entry,
-                                categorie: this.props.route.params.categorie
-                            }
-                        }));
-                    }
+            setEntry((prevState) => ({
+                entry: {
+                    ...prevState.entry,
+                    categorie: props.route.params.categorie
                 }
-            }
-            if (prevState.entry != this.state.entry) {
-                if (!this.state.entry.periodFrom) {
-                    this.setState((prevState) => ({
-                        entry: {
-                            ...prevState.entry,
-                            periodFrom: new Date()
-                        }
-                    }));
-                }
-                this._checkEntry();
-            }
-        } catch (error) {
-            error_handler._handleError('componentDidUpdate', error);
+            }));
         }
-    }
+    }, [props.route.params.categorie]);
 
-    _check_Description() {
+    React.useEffect(() => {
+        console.log('useEffect 3');
+        if (entry.periodFrom == undefined) {
+            setEntry((prevState) => ({
+                entry: {
+                    ...prevState.entry,
+                    periodFrom: new Date()
+                }
+            }));
+        }
+        _checkEntry();
+    }, [entry.periodFrom]);
+
+    function _check_Description() {
         try {
-            var valid =
-                !helper.isEmpty(this.state.entry) ||
-                (this.state.entry.description != undefined &&
-                    this.state.entry.description.length > 3);
-
-            this.setState({
-                descriptionIsValid: valid
-            });
+            return (
+                !helper.isEmpty(entry) ||
+                (entry.description != undefined && entry.description.length > 3)
+            );
         } catch (error) {
             error_handler._handleError('_check_Description', error);
         }
     }
 
-    _check_Amount() {
+    function _check_Amount() {
         try {
-            this.setState({
-                amountIsValid:
-                    helper.isEmpty(this.state.entry) ||
-                    this.state.entry.amount == '' ||
-                    this.state.entry.amount == undefined ||
-                    !helper._checkValidFloatRegEx(this.state.entry.amount)
-            });
+            return (
+                helper.isEmpty(entry) ||
+                entry.amount == '' ||
+                entry.amount == undefined ||
+                !helper._checkValidFloatRegEx(entry.amount)
+            );
         } catch (error) {
             error_handler._handleError('_check_Amount', error);
         }
     }
 
-    _checkEntry() {
-        var {entry} = this.state;
+    function _checkEntry() {
         try {
-            this._check_Amount();
-            this._check_Description();
+            _check_Amount();
+            _check_Description();
 
             if (
                 entry &&
@@ -198,16 +182,16 @@ class CreateEditEntryScreen extends Component {
                 entry.interval &&
                 entry.periodFrom
             ) {
-                this.setState({disabled: false});
+                setDisabled(false);
             } else {
-                this.setState({disabled: true});
+                setDisabled(true);
             }
         } catch (error) {
             error_handler._handleError('_checkEntry', error);
         }
     }
 
-    _checkPeriods(updatedFrom, updatedTill, oldFrom, oldTill) {
+    function _checkPeriods(updatedFrom, updatedTill, oldFrom, oldTill) {
         /**
          * @todo convert periods
          */
@@ -242,21 +226,19 @@ class CreateEditEntryScreen extends Component {
         }
     }
 
-    async _insertOrUpdateEntry() {
+    async function _insertOrUpdateEntry() {
         try {
-            var {entry} = this.state;
-
             if (entry.id) {
-                await this._updateMainEntrysAndEntrys();
+                await _updateMainEntrysAndEntrys();
             } else {
-                await this._insertMainEntry(undefined, true);
+                await _insertMainEntry(undefined, true);
             }
         } catch (error) {
             error_handler._handleError('_insertOrUpdateEntry', error);
         }
     }
 
-    async _insertTestEntrys() {
+    async function _insertTestEntrys() {
         try {
             let testEntrys = mainEntryJSON;
             var categorieModel = new CategorieModel();
@@ -274,7 +256,7 @@ class CreateEditEntryScreen extends Component {
                     testEntry.categorie = categorie;
                     testEntry.interval = interval;
 
-                    await this._insertMainEntry(testEntry, false);
+                    await _insertMainEntry(testEntry, false);
                 });
             }
         } catch (error) {
@@ -282,9 +264,9 @@ class CreateEditEntryScreen extends Component {
         }
     }
 
-    async _updateAllEntrys(mainEntry, id) {
+    async function _updateAllEntrys(mainEntry, id) {
         try {
-            if (!this.state.isTest) {
+            if (!isTest) {
                 var newMainEntry = await MainEntrys.update(
                     {id: id},
                     {
@@ -305,8 +287,8 @@ class CreateEditEntryScreen extends Component {
                 );
                 console.info('updated MainEntry', newMainEntry);
 
-                await this._deleteEntrys(newMainEntry.id);
-                await this._createEntrys(newMainEntry, newMainEntry.interval);
+                await _deleteEntrys(newMainEntry.id);
+                await _createEntrys(newMainEntry, newMainEntry.interval);
             } else {
                 console.info(' isTest updated MainEntry', {
                     amount: mainEntry.amount,
@@ -322,17 +304,15 @@ class CreateEditEntryScreen extends Component {
                     periodTill: mainEntry.periodTill,
                     badge: mainEntry.badge ? mainEntry.badge : ''
                 });
-                await this._createEntrys(mainEntry, mainEntry.interval);
+                await _createEntrys(mainEntry, mainEntry.interval);
             }
         } catch (error) {
             error_handler._handleError('_updateAllEntrys', error);
         }
     }
 
-    async _updateMainEntrysAndEntrys() {
+    async function _updateMainEntrysAndEntrys() {
         try {
-            var {entry} = this.state;
-
             var oldMainEntry = mainEntryModel.getMainEntryById(entry.id);
             var updatedMainEntry = {
                 ...entry
@@ -351,13 +331,13 @@ class CreateEditEntryScreen extends Component {
                 updatedTill,
                 oldFrom,
                 oldTill
-            } = await this._checkPeriods(
+            } = await _checkPeriods(
                 updatedMainEntry.periodFrom,
                 updatedMainEntry.periodTill,
                 oldMainEntry.periodFrom,
                 oldMainEntry.periodTill
             );
-            if (this._entryHasChanged(oldMainEntry, updatedMainEntry)) {
+            if (_entryHasChanged(oldMainEntry, updatedMainEntry)) {
                 var expression = updatedFrom < oldFrom && updatedTill > oldTill;
 
                 var expression1 =
@@ -375,7 +355,7 @@ class CreateEditEntryScreen extends Component {
                      * @todo Alert
                      *
                      */
-                    var {selectedMonth} = this.props.route.params;
+                    var {selectedMonth} = props.route.params;
 
                     var m = moment.months('de');
 
@@ -388,11 +368,11 @@ class CreateEditEntryScreen extends Component {
                         {
                             text: strings('allEntrys'),
                             onPress: async () => {
-                                await this._updateAllEntrys(
+                                await _updateAllEntrys(
                                     updatedMainEntry,
                                     oldMainEntry.id
                                 );
-                                this.props.navigation.goBack();
+                                props.navigation.goBack();
                             },
 
                             style: 'destructive'
@@ -414,7 +394,7 @@ class CreateEditEntryScreen extends Component {
                                     ).toDateString()
                                 );
 
-                                await this._createUpdateEntryArray(
+                                await _createUpdateEntryArray(
                                     updatedMainEntry,
                                     oldMainEntry
                                 );
@@ -422,13 +402,13 @@ class CreateEditEntryScreen extends Component {
                         }
                     ]);
                 } else {
-                    await this._createUpdateEntryArray(
+                    await _createUpdateEntryArray(
                         updatedMainEntry,
                         oldMainEntry
                     );
                 }
             } else {
-                // this.props.navigation.goBack();
+                // props.navigation.goBack();
                 Toast.show({
                     text: strings('nothingChanged'),
                     buttonText: strings('ok')
@@ -439,7 +419,7 @@ class CreateEditEntryScreen extends Component {
         }
     }
 
-    _entryHasChanged(oldMainEntry, updatedMainEntry) {
+    function _entryHasChanged(oldMainEntry, updatedMainEntry) {
         try {
             var oldE = {
                 ...oldMainEntry
@@ -454,14 +434,9 @@ class CreateEditEntryScreen extends Component {
         }
     }
 
-    _createUpdateEntryArray(updatedMainEntry, oldMainEntry) {
+    function _createUpdateEntryArray(updatedMainEntry, oldMainEntry) {
         try {
-            var {
-                updatedFrom,
-                updatedTill,
-                oldFrom,
-                oldTill
-            } = this._checkPeriods(
+            var {updatedFrom, updatedTill, oldFrom, oldTill} = _checkPeriods(
                 updatedMainEntry.periodFrom,
                 updatedMainEntry.periodTill,
                 oldMainEntry.periodFrom,
@@ -510,10 +485,9 @@ class CreateEditEntryScreen extends Component {
                     takeIsActive: true,
                     delete: false
                 });
-                this.setState({
-                    updateMainEntryArray: updateMainEntryArray,
-                    showModalChooseUpdate: true
-                });
+
+                setUpdateMainEntryArray(updateMainEntryArray);
+                setShowModalChooseUpdate(true);
             } else if (updatedFrom < oldFrom && updatedTill < oldTill) {
                 var updateMainEntryArray = [];
 
@@ -537,10 +511,9 @@ class CreateEditEntryScreen extends Component {
                     deleteIsActive: false,
                     takeIsActive: true
                 });
-                this.setState({
-                    updateMainEntryArray: updateMainEntryArray,
-                    showModalChooseUpdate: true
-                });
+
+                setUpdateMainEntryArray(updateMainEntryArray);
+                setShowModalChooseUpdate(true);
             } else if (updatedFrom > oldFrom && updatedTill == oldTill) {
                 var updateMainEntryArray = [];
 
@@ -565,10 +538,8 @@ class CreateEditEntryScreen extends Component {
                     deletable: false
                 });
 
-                this.setState({
-                    updateMainEntryArray: updateMainEntryArray,
-                    showModalChooseUpdate: true
-                });
+                setUpdateMainEntryArray(updateMainEntryArray);
+                setShowModalChooseUpdate(true);
             } else if (updatedFrom == oldFrom && updatedTill < oldTill) {
                 var updateMainEntryArray = [];
                 updateMainEntryArray.push({
@@ -592,10 +563,8 @@ class CreateEditEntryScreen extends Component {
                     takeIsActive: true
                 });
 
-                this.setState({
-                    updateMainEntryArray: updateMainEntryArray,
-                    showModalChooseUpdate: true
-                });
+                setUpdateMainEntryArray(updateMainEntryArray);
+                setShowModalChooseUpdate(true);
             } else {
                 console.warn('_createUpdateEntryArray', 'OOPS');
                 console.info(updatedMainEntry, oldMainEntry);
@@ -605,26 +574,22 @@ class CreateEditEntryScreen extends Component {
         }
     }
 
-    async _insertAndUpdateSubmittedEntrys() {
+    async function _insertAndUpdateSubmittedEntrys() {
         try {
-            const {updateMainEntryArray} = this.state;
-
             for (let i = 0; i < updateMainEntryArray.length; i++) {
                 const newMainEntry = updateMainEntryArray[i];
                 if (newMainEntry.id) {
                     // update
-                    await this._updateAllEntrys(newMainEntry, newMainEntry.id);
+                    await _updateAllEntrys(newMainEntry, newMainEntry.id);
                 } else {
                     if (newMainEntry.takeIsActive) {
                         // erstellen
-                        await this._insertMainEntry(newMainEntry);
+                        await _insertMainEntry(newMainEntry);
                     }
                 }
             }
 
-            this.setState({
-                showModalChooseUpdate: false
-            });
+            setShowModalChooseUpdate(false);
         } catch (error) {
             error_handler._handleError(
                 '_insertAndUpdateSubmittedEntrys',
@@ -633,60 +598,60 @@ class CreateEditEntryScreen extends Component {
         }
     }
 
-    async _insertMainEntry(entry, goBack) {
+    async function _insertMainEntry(newEntry, goBack) {
         try {
-            if (!entry) {
-                entry = this.state.entry;
+            if (!newEntry) {
+                newEntry = entry;
             }
 
-            if (entry.periodFrom) {
-                if (typeof entry.periodFrom == 'string') {
-                    entry.periodFrom = new Date(entry.periodFrom);
-                    entry.periodFrom = new Date(
-                        entry.periodFrom.toDateString()
+            if (newEntry.periodFrom) {
+                if (typeof newEntry.periodFrom == 'string') {
+                    newEntry.periodFrom = new Date(newEntry.periodFrom);
+                    newEntry.periodFrom = new Date(
+                        newEntry.periodFrom.toDateString()
                     );
                 } else {
-                    entry.periodFrom = new Date(
-                        entry.periodFrom.toDateString()
+                    newEntry.periodFrom = new Date(
+                        newEntry.periodFrom.toDateString()
                     );
                 }
             }
 
-            if (entry.periodTill) {
-                if (typeof entry.periodTill == 'string') {
-                    entry.periodTill = new Date(entry.periodTill);
-                    entry.periodTill = new Date(
-                        entry.periodTill.toDateString()
+            if (newEntry.periodTill) {
+                if (typeof newEntry.periodTill == 'string') {
+                    newEntry.periodTill = new Date(newEntry.periodTill);
+                    newEntry.periodTill = new Date(
+                        newEntry.periodTill.toDateString()
                     );
                 } else {
-                    entry.periodTill = new Date(
-                        entry.periodTill.toDateString()
+                    newEntry.periodTill = new Date(
+                        newEntry.periodTill.toDateString()
                     );
                 }
             }
             var periodTill = new Date(
-                new Date(entry.periodFrom).setFullYear(
-                    entry.periodFrom.getFullYear() + 10
+                new Date(newEntry.periodFrom).setFullYear(
+                    newEntry.periodFrom.getFullYear() + 10
                 )
             );
 
             var mainEntry = {
-                amount: entry.amount,
-                categorie: entry.categorie,
-                interval: entry.interval,
-                description: entry.description,
+                amount: newEntry.amount,
+                categorie: newEntry.categorie,
+                interval: newEntry.interval,
+                description: newEntry.description,
                 fixedCosts:
-                    entry.fixedCosts == 'true' || entry.fixedCosts == true
+                    newEntry.fixedCosts == 'true' || newEntry.fixedCosts == true
                         ? 'true'
                         : 'false',
                 periodFrom: entry.periodFrom,
-                periodTill: entry.periodTill ? entry.periodTill : periodTill,
-                badge: entry.badge ? entry.badge : ''
+                periodTill: entry.periodTill ? newEntry.periodTill : periodTill,
+                badge: newEntry.badge ? newEntry.badge : ''
             };
 
             var createdMainEntry = mainEntry;
 
-            if (!this.state.isTest) {
+            if (!isTest) {
                 console.info(' create MainEntry', mainEntry);
                 createdMainEntry = await MainEntrys.insert(mainEntry)[0];
             } else {
@@ -695,29 +660,25 @@ class CreateEditEntryScreen extends Component {
                 // console.info(JSON.stringify(mainEntry));
                 // console.info('TEST JSON END');
             }
-            await this._createEntrys(
-                createdMainEntry,
-                mainEntry.interval,
-                goBack
-            );
+            await _createEntrys(createdMainEntry, mainEntry.interval, goBack);
         } catch (error) {
             error_handler._handleError('_insertMainEntry', error);
         }
     }
 
-    async _deleteMainEntryAndEntrys() {
+    async function _deleteMainEntryAndEntrys() {
         try {
-            var id = this.state.entry.id;
-            await this._deleteEntrys(id);
+            var id = entry.id;
+            await _deleteEntrys(id);
 
-            await MainEntrys.remove({id: this.state.entry.id}, true);
-            this.props.navigation.goBack();
+            await MainEntrys.remove({id: entry.id}, true);
+            props.navigation.goBack();
         } catch (error) {
             error_handler._handleError('_deleteMainEntryAndEntrys', error);
         }
     }
 
-    async _deleteEntrys(id) {
+    async function _deleteEntrys(id) {
         try {
             await Entrys.perform(function (db) {
                 var filteredEntrys = entryModel.filterEntryBy({
@@ -734,10 +695,8 @@ class CreateEditEntryScreen extends Component {
         }
     }
 
-    _deleteEntry() {
+    function _deleteEntry() {
         try {
-            var {entry, selectedMonth, selectedYear} = this.state;
-
             var entryToDelete = entryModel.filterEntryBy({
                 mainEntry_id: entry.id,
                 month: selectedMonth.toString(),
@@ -754,13 +713,13 @@ class CreateEditEntryScreen extends Component {
                     true
                 );
             }
-            this.props.navigation.goBack();
+            props.navigation.goBack();
         } catch (error) {
             error_handler._handleError('_deleteEntry', error);
         }
     }
 
-    async _createEntrys(mainEntry, interval, goBack) {
+    async function _createEntrys(mainEntry, interval, goBack) {
         function addMonths(oldDate, months) {
             try {
                 var date = new Date(oldDate);
@@ -821,11 +780,11 @@ class CreateEditEntryScreen extends Component {
                 parseInt(interval.key)
             );
 
-            if (!this.state.isTest) {
+            if (!isTest) {
                 console.info('create Entrys', entrys);
                 await Entrys.insert(entrys, true);
                 if (goBack) {
-                    this.props.navigation.goBack();
+                    props.navigation.goBack();
                 }
             } else {
                 console.info('isTest create Entrys', entrys);
@@ -835,22 +794,20 @@ class CreateEditEntryScreen extends Component {
         }
     }
 
-    _renderItem(item) {
+    function _renderItem(item) {
         try {
-            const {entry} = this.state;
-
             switch (item.type) {
                 case 'switch':
-                    return this._renderListSwitchItem(item, entry);
+                    return _renderListSwitchItem(item);
                 case 'input':
-                    return this._renderListInputItem(item, entry);
+                    return _renderListInputItem(item);
                 case 'nav':
-                    return this._renderListNavItem(item, entry);
+                    return _renderListNavItem(item);
                 case 'actionSheet':
-                    return this._renderListActionSheetItem(item, entry);
+                    return _renderListActionSheetItem(item);
 
                 case 'datepicker':
-                    return this._renderListDatePickerItem(item, entry);
+                    return _renderListDatePickerItem(item);
                 case 'icons':
                     return (
                         <ListItem icon>
@@ -871,7 +828,7 @@ class CreateEditEntryScreen extends Component {
                                         borderRadius: 15
                                     }}
                                     onPress={() => {
-                                        this.setState((prevState) => ({
+                                        setEntry((prevState) => ({
                                             entry: {
                                                 ...prevState.entry,
                                                 badge: 'listBadgeBlue'
@@ -893,7 +850,7 @@ class CreateEditEntryScreen extends Component {
                                         borderRadius: 15
                                     }}
                                     onPress={() => {
-                                        this.setState((prevState) => ({
+                                        setEntry((prevState) => ({
                                             entry: {
                                                 ...prevState.entry,
                                                 badge: 'listBadgeRed'
@@ -915,7 +872,7 @@ class CreateEditEntryScreen extends Component {
                                         borderRadius: 15
                                     }}
                                     onPress={() => {
-                                        this.setState((prevState) => ({
+                                        setEntry((prevState) => ({
                                             entry: {
                                                 ...prevState.entry,
                                                 badge: 'listBadgeYellow'
@@ -937,7 +894,7 @@ class CreateEditEntryScreen extends Component {
                                         borderRadius: 15
                                     }}
                                     onPress={() => {
-                                        this.setState((prevState) => ({
+                                        setEntry((prevState) => ({
                                             entry: {
                                                 ...prevState.entry,
                                                 badge: 'listBadgeGreen'
@@ -959,7 +916,7 @@ class CreateEditEntryScreen extends Component {
                                         borderRadius: 15
                                     }}
                                     onPress={() => {
-                                        this.setState((prevState) => ({
+                                        setEntry((prevState) => ({
                                             entry: {
                                                 ...prevState.entry,
                                                 badge: 'listBadgeGreen'
@@ -969,7 +926,7 @@ class CreateEditEntryScreen extends Component {
                                 >
                                     <Icon
                                         onPress={() => {
-                                            this.setState((prevState) => ({
+                                            setEntry((prevState) => ({
                                                 entry: {
                                                     ...prevState.entry,
                                                     badge: undefined
@@ -993,7 +950,7 @@ class CreateEditEntryScreen extends Component {
         }
     }
 
-    _renderListInputItem(item, entry) {
+    function _renderListInputItem(item) {
         var onChangeText = () => {};
         var error = false;
         var value = '';
@@ -1002,7 +959,7 @@ class CreateEditEntryScreen extends Component {
         try {
             if (item.title == strings('description')) {
                 onChangeText = (text) => {
-                    this.setState((prevState) => ({
+                    setEntry((prevState) => ({
                         entry: {
                             ...prevState.entry,
                             description: text
@@ -1016,7 +973,7 @@ class CreateEditEntryScreen extends Component {
                 value = entry.description;
             } else {
                 onChangeText = (text) => {
-                    this.setState((prevState) => ({
+                    setEntry((prevState) => ({
                         entry: {
                             ...prevState.entry,
                             amount: text
@@ -1043,7 +1000,7 @@ class CreateEditEntryScreen extends Component {
                 <ListInputItem
                     title={item.title}
                     note={note}
-                    onChangeText={onChangeText.bind(this)}
+                    onChangeText={onChangeText}
                     value={value}
                     returnKeyType={item.returnKeyType}
                     keyboardType={item.keyboardType}
@@ -1056,14 +1013,14 @@ class CreateEditEntryScreen extends Component {
         }
     }
 
-    _renderListSwitchItem(item, entry) {
+    function _renderListSwitchItem(item) {
         var onValueChange = () => {};
         var value = '';
         var title = '';
         try {
             if (item.title == strings('fixedCosts')) {
                 onValueChange = (val) => {
-                    this.setState((prevState) => ({
+                    setEntry((prevState) => ({
                         entry: {
                             ...prevState.entry,
                             fixedCosts: val
@@ -1080,7 +1037,7 @@ class CreateEditEntryScreen extends Component {
                 <ListSwitchItem
                     title={title}
                     value={value}
-                    onValueChange={onValueChange.bind(this)}
+                    onValueChange={onValueChange}
                 />
             );
         } catch (error) {
@@ -1088,26 +1045,31 @@ class CreateEditEntryScreen extends Component {
         }
     }
 
-    _renderListNavItem(item, entry) {
+    function _renderListNavItem(item) {
         var nav = undefined;
-        var onPress = () => {};
+        var onPressNav = () => {};
         var rightText = false;
+
         try {
             if (item.title == strings('categorie')) {
                 nav = 'Categories';
-                onPress = () => {
-                    this.props.navigation.navigate(nav, {
+
+                onPressNav = () => {
+                    props.navigation.navigate(nav, {
                         params: {entry: entry}
                     });
                 };
-                rightText = entry.categorie
-                    ? strings(entry.categorie.name)
+
+                rightText = entry.entry.categorie
+                    ? strings(entry.entry.categorie.name)
                     : undefined;
+                console.log('test', entry.entry, entry.entry.categorie);
             }
+
             return (
                 <ListNavItem
                     title={item.title}
-                    onPress={onPress.bind(this)}
+                    onPress={onPressNav}
                     rightText={rightText}
                 />
             );
@@ -1116,14 +1078,13 @@ class CreateEditEntryScreen extends Component {
         }
     }
 
-    _renderListActionSheetItem(item, entry) {
+    function _renderListActionSheetItem(item) {
         var title = '';
         var BUTTONS = [];
         var onPress = () => {};
         var rightText = false;
         try {
             if (item.title == strings('interval')) {
-                var intervals = this.state.intervals;
                 if (intervals) {
                     intervals.forEach((interval) => {
                         BUTTONS.push(strings(interval.name));
@@ -1132,7 +1093,7 @@ class CreateEditEntryScreen extends Component {
 
                 title = item.title;
                 onPress = (buttonIndex) => {
-                    this.setState((prevState) => ({
+                    setEntry((prevState) => ({
                         entry: {
                             ...prevState.entry,
                             interval: intervals[buttonIndex]
@@ -1150,7 +1111,7 @@ class CreateEditEntryScreen extends Component {
                     title={title}
                     BUTTONS={BUTTONS}
                     actionSheetTitle={strings('ChooseInterval')}
-                    onPress={onPress.bind(this)}
+                    onPress={onPress}
                     rightText={rightText}
                 />
             );
@@ -1159,7 +1120,7 @@ class CreateEditEntryScreen extends Component {
         }
     }
 
-    _renderListDatePickerItem(item, entry) {
+    function _renderListDatePickerItem(item) {
         try {
             if (item.title == strings('periodFrom')) {
                 return (
@@ -1171,19 +1132,16 @@ class CreateEditEntryScreen extends Component {
                         value={
                             entry.periodFrom
                                 ? new Date(entry.periodFrom)
-                                : this.state.selectedMonth &&
-                                  this.state.selectedYear
+                                : selectedMonth && selectedYear
                                 ? new Date(
-                                      this.state.selectedMonth +
-                                          '.01.' +
-                                          this.state.selectedYear
+                                      selectedMonth + '.01.' + selectedYear
                                   )
                                 : new Date()
                         }
                         mode={'date'}
                         display="default"
                         onChange={(event, date) => {
-                            this.setState((prevState) => {
+                            setEntry((prevState) => {
                                 let entry = Object.assign({}, prevState.entry);
                                 entry.periodFrom = date;
                                 return {entry};
@@ -1198,7 +1156,7 @@ class CreateEditEntryScreen extends Component {
                             <Text>{item.title}</Text>
                         </Left>
                         <Body>
-                            {this.state.showTillDatePicker ? (
+                            {showTillDatePicker ? (
                                 <DateTimePicker
                                     style={{width: 120}}
                                     testID="dateTimePicker"
@@ -1212,7 +1170,7 @@ class CreateEditEntryScreen extends Component {
                                     is24Hour={true}
                                     display="default"
                                     onChange={(event, date) => {
-                                        this.setState((prevState) => ({
+                                        setEntry((prevState) => ({
                                             entry: {
                                                 ...prevState.entry,
                                                 periodTill: date
@@ -1224,21 +1182,23 @@ class CreateEditEntryScreen extends Component {
                         </Body>
                         <Right>
                             <Switch
-                                value={this.state.showTillDatePicker}
+                                value={showTillDatePicker}
                                 onValueChange={(val) => {
-                                    val
-                                        ? this.setState((prevState) => ({
-                                              showTillDatePicker: !this.state
-                                                  .showTillDatePicker,
-                                              entry: {
-                                                  ...prevState.entry,
-                                                  periodTill: new Date()
-                                              }
-                                          }))
-                                        : this.setState({
-                                              showTillDatePicker: !this.state
-                                                  .showTillDatePicker
-                                          });
+                                    if (val) {
+                                        setShowTillDatePicker(
+                                            !showTillDatePicker
+                                        );
+                                        setEntry((prevState) => ({
+                                            entry: {
+                                                ...prevState.entry,
+                                                periodTill: new Date()
+                                            }
+                                        }));
+                                    } else {
+                                        setShowTillDatePicker(
+                                            !showTillDatePicker
+                                        );
+                                    }
                                 }}
                             />
                         </Right>
@@ -1250,238 +1210,223 @@ class CreateEditEntryScreen extends Component {
         }
     }
 
-    render() {
-        const {options, entry, isLastMonth} = this.state;
-        const image = background;
-
-        const styles = StyleSheet.create({
-            image: {
-                flex: 1,
-                resizeMode: 'cover',
-                justifyContent: 'center'
-            }
-        });
-
-        return (
-            <Container>
-                <ImageBackground source={image} style={styles.image}>
-                    <Header
-                        transparent
-                        style={{marginBottom: 10, paddingBottom: 10}}
-                    >
-                        <Left>
-                            <Button
+    return (
+        <Container>
+            <ImageBackground source={image} style={styles.image}>
+                <Header
+                    transparent
+                    style={{marginBottom: 10, paddingBottom: 10}}
+                >
+                    <Left>
+                        <Button
+                            style={[
+                                GlobalStyles.headerLeftButton,
+                                {position: 'relative', left: 5}
+                            ]}
+                            primary
+                            transparent
+                            onPress={() => {
+                                props.navigation.goBack();
+                            }}
+                        >
+                            <Icon name="chevron-back" />
+                        </Button>
+                    </Left>
+                    <Body>
+                        <Title light>
+                            {entry && entry.id
+                                ? strings('EditEntry')
+                                : strings('CreateEntry')}
+                        </Title>
+                    </Body>
+                    <Right>
+                        <Button
+                            secondary
+                            transparent
+                            onPress={() => {
+                                _insertTestEntrys();
+                            }}
+                        >
+                            <Icon name="bug" />
+                        </Button>
+                        <Button
+                            disabled={disabled}
+                            large
+                            style={[
+                                GlobalStyles.headerRightButton,
+                                {
+                                    position: 'relative',
+                                    top: 10,
+                                    opacity: disabled ? 1 : 1
+                                }
+                            ]}
+                            rounded
+                            onPress={() => {
+                                _insertOrUpdateEntry();
+                            }}
+                        >
+                            <Icon
                                 style={[
-                                    GlobalStyles.headerLeftButton,
-                                    {position: 'relative', left: 5}
-                                ]}
-                                primary
-                                transparent
-                                onPress={() => {
-                                    this.props.navigation.goBack();
-                                }}
-                            >
-                                <Icon name="chevron-back" />
-                            </Button>
-                        </Left>
-                        <Body>
-                            <Title light>
-                                {entry && entry.id
-                                    ? strings('EditEntry')
-                                    : strings('CreateEntry')}
-                            </Title>
-                        </Body>
-                        <Right>
-                            <Button
-                                secondary
-                                transparent
-                                onPress={() => {
-                                    this._insertTestEntrys();
-                                }}
-                            >
-                                <Icon name="bug" />
-                            </Button>
-                            <Button
-                                disabled={this.state.disabled}
-                                large
-                                style={[
-                                    GlobalStyles.headerRightButton,
+                                    GlobalStyles.headerRightButtonIcon,
                                     {
-                                        position: 'relative',
-                                        top: 10,
-                                        opacity: this.state.disabled ? 1 : 1
+                                        opacity: disabled ? 0.5 : 1
                                     }
                                 ]}
-                                rounded
-                                onPress={() => {
-                                    this._insertOrUpdateEntry();
-                                }}
-                            >
-                                <Icon
-                                    style={[
-                                        GlobalStyles.headerRightButtonIcon,
+                                name="save"
+                            />
+                        </Button>
+                    </Right>
+                </Header>
+                <ChooseUpdateModal
+                    showModalChooseUpdate={showModalChooseUpdate}
+                    updateMainEntryArray={updateMainEntryArray}
+                    onSetData={(data) => {
+                        setUpdateMainEntryArray(data);
+                    }}
+                    toggleShowChooseUpdateModal={(visible) => {
+                        setShowModalChooseUpdate(
+                            visible != undefined
+                                ? visible
+                                : !showModalChooseUpdate
+                        );
+                    }}
+                    onSaveHandler={() => {
+                        _insertAndUpdateSubmittedEntrys();
+                        props.navigation.goBack();
+                    }}
+                />
+
+                <FlatList
+                    data={options}
+                    keyExtractor={(item, index) => index.toString()}
+                    scrollEnabled={true}
+                    renderItem={({item}) => _renderItem(item)}
+                    ListHeaderComponent={() => (
+                        <>
+                            {isLastMonth ? (
+                                <Card>
+                                    <CardItem firstlast>
+                                        <Body>
+                                            <Text note warning>
+                                                {
+                                                    'Dies ist der letze Monat des Eintrages, möchten Sie verlängern?'
+                                                }
+                                            </Text>
+                                        </Body>
+                                    </CardItem>
+                                </Card>
+                            ) : null}
+                        </>
+                    )}
+                    // ListFooterComponent={() => (
+                    //     <>
+                    //         <Title>Vorschau</Title>
+                    //         <ListItem
+                    //             style={{
+                    //                 marginLeft: 0,
+                    //                 backgroundColor: entry.badge
+                    //                     ? GlobalColors[entry.badge]
+                    //                     : undefined,
+                    //                 borderTopRightRadius: 15,
+                    //                 borderBottomRightRadius: 15,
+                    //                 marginRight: 10
+                    //             }}
+                    //             icon
+                    //         >
+                    //             <Left
+                    //                 style={{
+                    //                     marginLeft: 0,
+                    //                     marginRight: 5,
+                    //                     backgroundColor:
+                    //                         entry.fixedCosts == 'true' ||
+                    //                         entry.fixedCosts == true
+                    //                             ? GlobalColors.mainColor
+                    //                             : undefined,
+                    //                     borderTopRightRadius: 15,
+                    //                     borderBottomRightRadius: 15
+                    //                 }}
+                    //             >
+                    //                 <Icon
+                    //                     style={{
+                    //                         color:
+                    //                             entry.fixedCosts ==
+                    //                                 'true' ||
+                    //                             entry.fixedCosts == true
+                    //                                 ? GlobalColors.light
+                    //                                 : undefined
+                    //                     }}
+                    //                     light
+                    //                     name={
+                    //                         entry.categorie
+                    //                             ? entry.categorie.icon
+                    //                             : 'car'
+                    //                     }
+                    //                 ></Icon>
+                    //             </Left>
+                    //             <Body>
+                    //                 <Text>
+                    //                     {entry.description
+                    //                         ? entry.description
+                    //                         : 'Name'}
+                    //                 </Text>
+                    //             </Body>
+                    //             <Right>
+                    //                 <Text style={{color: '#333'}}>
+                    //                     {entry.amount
+                    //                         ? entry.amount +
+                    //                           ' ' +
+                    //                           strings('Currency')
+                    //                         : 50 + strings('Currency')}
+                    //                 </Text>
+                    //             </Right>
+                    //         </ListItem>
+                    //     </>
+                    // )}
+                />
+                <SafeAreaView style={{flex: 1}}>
+                    {entry && entry.id ? (
+                        <Button
+                            style={{marginVertical: 20}}
+                            warning
+                            iconLeft
+                            transparent
+                            centered
+                            onPress={() => {
+                                Alert.alert(
+                                    strings('AskDeleteSerie'),
+                                    strings('DeleteEntryOrSerie'),
+                                    [
                                         {
-                                            opacity: this.state.disabled
-                                                ? 0.5
-                                                : 1
+                                            text: strings('Cancel'),
+                                            onPress: () => {},
+                                            style: 'cancel'
+                                        },
+                                        {
+                                            text: strings('DeleteEntry'),
+                                            onPress: () => {
+                                                _deleteEntry();
+                                            },
+
+                                            style: 'default'
+                                        },
+                                        {
+                                            text: strings('DeleteSerie'),
+                                            style: 'destructive',
+                                            onPress: () =>
+                                                _deleteMainEntryAndEntrys()
                                         }
-                                    ]}
-                                    name="save"
-                                />
-                            </Button>
-                        </Right>
-                    </Header>
-                    <ChooseUpdateModal
-                        showModalChooseUpdate={this.state.showModalChooseUpdate}
-                        updateMainEntryArray={this.state.updateMainEntryArray}
-                        onSetData={(data) => {
-                            this.setState({updateMainEntryArray: data});
-                        }}
-                        toggleShowChooseUpdateModal={(visible) => {
-                            this.setState({
-                                showModalChooseUpdate:
-                                    visible != undefined
-                                        ? visible
-                                        : !this.state.showModalChooseUpdate
-                            });
-                        }}
-                        onSaveHandler={() => {
-                            this._insertAndUpdateSubmittedEntrys();
-                            this.props.navigation.goBack();
-                        }}
-                    />
+                                    ]
+                                );
+                            }}
+                        >
+                            <Icon name="trash"></Icon>
+                            <Text>{strings('Delete')}</Text>
+                        </Button>
+                    ) : null}
+                </SafeAreaView>
+            </ImageBackground>
+        </Container>
+    );
+};
 
-                    <FlatList
-                        data={options}
-                        keyExtractor={(item, index) => index.toString()}
-                        scrollEnabled={true}
-                        renderItem={({item}) => this._renderItem(item)}
-                        ListHeaderComponent={() => (
-                            <>
-                                {isLastMonth ? (
-                                    <Card>
-                                        <CardItem firstlast>
-                                            <Body>
-                                                <Text note warning>
-                                                    {
-                                                        'Dies ist der letze Monat des Eintrages, möchten Sie verlängern?'
-                                                    }
-                                                </Text>
-                                            </Body>
-                                        </CardItem>
-                                    </Card>
-                                ) : null}
-                            </>
-                        )}
-                        // ListFooterComponent={() => (
-                        //     <>
-                        //         <Title>Vorschau</Title>
-                        //         <ListItem
-                        //             style={{
-                        //                 marginLeft: 0,
-                        //                 backgroundColor: entry.badge
-                        //                     ? GlobalColors[entry.badge]
-                        //                     : undefined,
-                        //                 borderTopRightRadius: 15,
-                        //                 borderBottomRightRadius: 15,
-                        //                 marginRight: 10
-                        //             }}
-                        //             icon
-                        //         >
-                        //             <Left
-                        //                 style={{
-                        //                     marginLeft: 0,
-                        //                     marginRight: 5,
-                        //                     backgroundColor:
-                        //                         entry.fixedCosts == 'true' ||
-                        //                         entry.fixedCosts == true
-                        //                             ? GlobalColors.mainColor
-                        //                             : undefined,
-                        //                     borderTopRightRadius: 15,
-                        //                     borderBottomRightRadius: 15
-                        //                 }}
-                        //             >
-                        //                 <Icon
-                        //                     style={{
-                        //                         color:
-                        //                             entry.fixedCosts ==
-                        //                                 'true' ||
-                        //                             entry.fixedCosts == true
-                        //                                 ? GlobalColors.light
-                        //                                 : undefined
-                        //                     }}
-                        //                     light
-                        //                     name={
-                        //                         entry.categorie
-                        //                             ? entry.categorie.icon
-                        //                             : 'car'
-                        //                     }
-                        //                 ></Icon>
-                        //             </Left>
-                        //             <Body>
-                        //                 <Text>
-                        //                     {entry.description
-                        //                         ? entry.description
-                        //                         : 'Name'}
-                        //                 </Text>
-                        //             </Body>
-                        //             <Right>
-                        //                 <Text style={{color: '#333'}}>
-                        //                     {entry.amount
-                        //                         ? entry.amount +
-                        //                           ' ' +
-                        //                           strings('Currency')
-                        //                         : 50 + strings('Currency')}
-                        //                 </Text>
-                        //             </Right>
-                        //         </ListItem>
-                        //     </>
-                        // )}
-                    />
-                    <SafeAreaView style={{flex: 1}}>
-                        {this.state.entry && this.state.entry.id ? (
-                            <Button
-                                style={{marginVertical: 20}}
-                                warning
-                                iconLeft
-                                transparent
-                                centered
-                                onPress={() => {
-                                    Alert.alert(
-                                        strings('AskDeleteSerie'),
-                                        strings('DeleteEntryOrSerie'),
-                                        [
-                                            {
-                                                text: strings('Cancel'),
-                                                onPress: () => {},
-                                                style: 'cancel'
-                                            },
-                                            {
-                                                text: strings('DeleteEntry'),
-                                                onPress: () => {
-                                                    this._deleteEntry();
-                                                },
-
-                                                style: 'default'
-                                            },
-                                            {
-                                                text: strings('DeleteSerie'),
-                                                style: 'destructive',
-                                                onPress: () =>
-                                                    this._deleteMainEntryAndEntrys()
-                                            }
-                                        ]
-                                    );
-                                }}
-                            >
-                                <Icon name="trash"></Icon>
-                                <Text>{strings('Delete')}</Text>
-                            </Button>
-                        ) : null}
-                    </SafeAreaView>
-                </ImageBackground>
-            </Container>
-        );
-    }
-}
 export default CreateEditEntryScreen;
